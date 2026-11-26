@@ -7,23 +7,27 @@ Phần mềm giám sát hệ thống chiếu sáng đường phố **từ xa qua
 ## Các mục trong trang
 | Mục | Nội dung |
 |---|---|
-| 🗺️ **Bản đồ 3D** (trang mở đầu) | TBA → tủ → tuyến → cột đèn trên mạng đường phố. Dòng điện chạy trong cáp, đèn sáng/tắt theo số đo, vùng nghi đứt cáp nhấp nháy đỏ, ghim 📍 vị trí sự cố. Chạm vào tủ/cột để xem số liệu, điều khiển, đánh dấu. |
-| 📟 **SCADA** | Sơ đồ một sợi tự vẽ: thanh cái, CB tổng, CB nhánh, contactor K1/K2, dòng từng tuyến, dãy cột. Bấm thiết bị để điều khiển. |
+| 🗺️ **Bản đồ** (trang mở đầu) | Nền CAD và toàn bộ dữ liệu của **LIGHTING-GIS** (Q1, Q3, Bình Thạnh, Phú Nhuận): 874 tủ, 16.200 trụ, 15.382 đoạn cáp ngầm/nổi, ranh phường, sông, tên đường. Xem 2D kiểu CAD hoặc 3D, nền tối/sáng, lọc theo quận, tìm tủ/trụ/địa chỉ. Dòng điện chạy trong cáp, đèn sáng/tắt theo số đo, đoạn nghi đứt nhấp nháy đỏ, ghim 📍 sự cố. |
+| 📟 **SCADA** | Lưới trạng thái 874 tủ theo quận; chọn tủ để xem sơ đồ một sợi: CB tổng, K1/K2, dòng 3 pha so với dòng chuẩn tính từ danh mục đèn GIS, dãy trụ theo từng tuyến. |
 | 🎛️ **Điều khiển** | Danh sách tủ, điều khiển hàng loạt; từng tủ có Đo lường, Sơ đồ tủ 3D, Vào/Ra, Điện năng, Lịch, Nhật ký. |
 | 🚨 **Cảnh báo** | Một danh sách sự cố chung cho cả bản đồ, SCADA và tủ: vị trí ước tính, giao tổ, Zalo, báo cáo ngày, Excel. |
 | ⚙️ **Cài đặt** | Kết nối MQTT, PIN điều khiển, tổ đội, danh sách tủ, giả lập sự cố (Demo). |
 
 ## Ước tính vị trí đứt cáp
-Tủ đo dòng từng tuyến. Dòng giảm bao nhiêu bóng (≈ 0,68 A/bóng LED 150 W) thì suy ra đứt sau cột số mấy, cách tủ bao nhiêu mét. Giảm 1–2 bóng → nghi hỏng bóng lẻ; ≥ 3 bóng → nghi đứt cáp.
+App dựng cây cáp của từng tủ từ dữ liệu GIS (trụ → trụ cha → tủ) và tính dòng chuẩn của từng trụ từ công suất, loại đèn (LED/HPS…). Khi dòng tổng của tủ giảm, app tìm trụ mà **toàn bộ nhánh phía sau** có dòng bằng lượng bị mất → nghi đứt cáp giữa trụ đó và trụ trước, kèm tên đường và số mét theo cáp từ tủ. Giảm 1–2 bóng → nghi hỏng bóng lẻ. Chỉ cần tủ đo dòng tổng, không cần đo từng tuyến. Hệ số hiệu chỉnh tự học khi tủ chạy bình thường.
 
-## Dữ liệu mạng
-Khối `NET` ở đầu phần script của `index.html` mô tả TBA, tủ, đường, tuyến, số cột (1 đơn vị toạ độ = 3,3 m). Sửa theo bản vẽ tuyến thật để có mô hình khu vực mình. Mã tủ phải trùng `CABINET_ID` trong firmware; tủ thật gửi bản tin lên broker sẽ tự gắn vào bản đồ.
+## Dữ liệu mạng (LIGHTING-GIS)
+App đọc `pack.gz` và `base.gz` của repo **LIGHTING-GIS**: ưu tiên `../LIGHTING-GIS/` (cùng tên miền Pages), dự phòng `raw.githubusercontent.com`. Cập nhật dữ liệu ở LIGHTING-GIS là CSCC tự dùng bản mới. Toạ độ VN-2000 (m).
+
+**Mã tủ** trong firmware (`CABINET_ID`) đặt **trùng mã KNTT của LIGHTING-GIS** (ví dụ `T002.04`, `EC04.15`) hoặc mã PE; tủ thật gửi bản tin lên broker sẽ tự gắn vào đúng vị trí trên bản đồ và SCADA.
 
 ## Bật GitHub Pages (làm 1 lần)
 Settings → Pages → Source: **Deploy from a branch** → Branch **main**, thư mục **/ (root)** → Save.
 
 ## Lưu ý
-- Chế độ Demo là mạng mẫu 3 tủ · 6 tuyến · 42 cột. Broker MQTT công cộng chỉ để thử; dùng thật cần broker riêng có mật khẩu.
+- Chế độ Demo giả lập cả 874 tủ theo dữ liệu GIS (bản tin 10 s/lần); giả lập sự cố tại trụ bằng nút 🧪 trên thẻ trụ hoặc ở Cài đặt.
+- Dữ liệu chia kênh K1/K2 chưa có trong GIS nên mọi đèn tạm coi là K1 (cả đêm).
+- Broker MQTT công cộng chỉ để thử; dùng thật cần broker riêng có mật khẩu.
 - Đo dòng từng tuyến (`r`, `rcb`) và đóng lại CB từ xa (`rcb`, `cb`) là phần mở rộng – xem `firmware/README.md`.
 - Firmware mới kiểm tra cú pháp, chưa biên dịch trên bộ công cụ ESP32 thật – chạy thử trên Wokwi trước.
 - Mọi đấu nối vào điện 220/380 V do thợ điện có chuyên môn thực hiện.

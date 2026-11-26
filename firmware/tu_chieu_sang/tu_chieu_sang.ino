@@ -54,7 +54,7 @@ const uint16_t MQTT_PORT = 1883;
 const char* MQTT_USER   = "";
 const char* MQTT_PASS   = "";
 const char* TOPIC_ROOT  = "cs/demo-doi-cs";      // trùng với Cài đặt > Kết nối trong app
-const char* CABINET_ID  = "TU-001";
+const char* CABINET_ID  = "T002.04";   // = mã KNTT của tủ trong LIGHTING-GIS (vd T002.04, EC04.15)
 
 const int N_DO = 4, N_DI = 6;
 const int PIN_DO[N_DO] = {25, 26, 27, 14};
