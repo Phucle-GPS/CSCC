@@ -41,8 +41,8 @@ App đọc `pack.gz` và `base.gz` của repo **LIGHTING-GIS**: ưu tiên `../LI
 ## Thao tác bản đồ
 | Thao tác | Việc làm |
 |---|---|
-| Giữ **chuột trái** (công cụ ✋ Kéo) hoặc giữ **chuột giữa** rồi kéo | Di chuyển bản đồ – con trỏ bàn tay nắm, điểm dưới tay đi theo tay (2D và 3D) |
-| Giữ **chuột phải** hoặc Shift + kéo, hoặc chọn công cụ 🔄 Xoay | Xoay (2D) · xoay và nghiêng (3D) |
+| Giữ **chuột trái** (nút đang là ✋ Kéo) hoặc giữ **chuột giữa** rồi kéo | Di chuyển bản đồ – con trỏ bàn tay nắm, điểm dưới tay đi theo tay (2D và 3D) |
+| Giữ **chuột phải** hoặc Shift + kéo, hoặc bấm nút ✋ Kéo để đổi thành 🔄 Xoay | Xoay (2D) · xoay và nghiêng (3D) |
 | Lăn chuột · chụm 2 ngón | Phóng to/thu nhỏ về phía con trỏ |
 | Mũi tên · + / − (sau khi bấm vào bản đồ) | Di chuyển · phóng |
 | Chạm / bấm | Chọn tủ, trụ · nhấp đúp để phóng tới |
