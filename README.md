@@ -1,30 +1,31 @@
-# CSCC – Chiếu sáng công cộng
+# CSCC – Giám sát chiếu sáng công cộng
 
-App cá nhân giám sát, điều khiển tủ chiếu sáng đường phố và đào tạo vận hành. Chạy trên trình duyệt điện thoại và máy tính, cài được ra màn hình chính như app (PWA).
+Phần mềm giám sát hệ thống chiếu sáng đường phố **từ xa qua Bản đồ 3D và SCADA**, kèm điều khiển tủ và quản lý sự cố. Chạy trên trình duyệt điện thoại và máy tính, cài được như app (PWA).
 
-| Phần | File | Mở trên web |
-|---|---|---|
-| App điều khiển tủ | `index.html` | https://phucle-gps.github.io/CSCC/ |
-| Bản đồ 3D + SCADA + đào tạo | `ban-do-chieu-sang.html` | https://phucle-gps.github.io/CSCC/ban-do-chieu-sang.html |
-| Firmware gateway ESP32 | `firmware/` | Xem `firmware/README.md` |
+**Mở:** https://phucle-gps.github.io/CSCC/
 
-## App điều khiển tủ
-- **Tổng quan**: tủ trực tuyến, tủ đang sáng, công suất, điện năng hôm nay, sự cố chưa xong.
-- **Tủ**: đo lường 3 pha · sơ đồ 3D có dòng điện chạy và phân đoạn sự cố · vào/ra (6 DI, 4 DO) · điện năng · lịch từng kênh · nhật ký.
-- **Điều khiển**: bật/tắt từng kênh hoặc hàng loạt theo khu vực. Lệnh phải bấm xác nhận, chờ tủ phản hồi, có mã PIN tuỳ chọn.
-- **Cảnh báo**: giao tổ, chép tin gửi Zalo, báo cáo ngày, xuất Excel.
-- **Cài đặt**: kết nối MQTT, chế độ Demo (8 tủ giả lập), giả lập sự cố.
+## Các mục trong trang
+| Mục | Nội dung |
+|---|---|
+| 🗺️ **Bản đồ 3D** (trang mở đầu) | TBA → tủ → tuyến → cột đèn trên mạng đường phố. Dòng điện chạy trong cáp, đèn sáng/tắt theo số đo, vùng nghi đứt cáp nhấp nháy đỏ, ghim 📍 vị trí sự cố. Chạm vào tủ/cột để xem số liệu, điều khiển, đánh dấu. |
+| 📟 **SCADA** | Sơ đồ một sợi tự vẽ: thanh cái, CB tổng, CB nhánh, contactor K1/K2, dòng từng tuyến, dãy cột. Bấm thiết bị để điều khiển. |
+| 🎛️ **Điều khiển** | Danh sách tủ, điều khiển hàng loạt; từng tủ có Đo lường, Sơ đồ tủ 3D, Vào/Ra, Điện năng, Lịch, Nhật ký. |
+| 🚨 **Cảnh báo** | Một danh sách sự cố chung cho cả bản đồ, SCADA và tủ: vị trí ước tính, giao tổ, Zalo, báo cáo ngày, Excel. |
+| ⚙️ **Cài đặt** | Kết nối MQTT, PIN điều khiển, tổ đội, danh sách tủ, giả lập sự cố (Demo). |
 
-## Bản đồ 3D + SCADA + đào tạo
-- Mạng TBA → tủ → tuyến → cột dựng từ khối dữ liệu `NET` ở đầu file. Sửa khối này theo bản vẽ tuyến thật để có mô hình của khu vực mình (1 đơn vị = 3,3 m).
-- Sơ đồ một sợi, faceplate điều khiển, cảnh báo kiểu DCS (ACK, giao tổ), ước tính vị trí đứt cáp từ mức sụt dòng.
-- 5 bài đào tạo chấm điểm: cắt trộm cáp, xe tông cột, mất điện lưới, contactor không đóng, hỏng bóng lẻ.
+## Ước tính vị trí đứt cáp
+Tủ đo dòng từng tuyến. Dòng giảm bao nhiêu bóng (≈ 0,68 A/bóng LED 150 W) thì suy ra đứt sau cột số mấy, cách tủ bao nhiêu mét. Giảm 1–2 bóng → nghi hỏng bóng lẻ; ≥ 3 bóng → nghi đứt cáp.
+
+## Dữ liệu mạng
+Khối `NET` ở đầu phần script của `index.html` mô tả TBA, tủ, đường, tuyến, số cột (1 đơn vị toạ độ = 3,3 m). Sửa theo bản vẽ tuyến thật để có mô hình khu vực mình. Mã tủ phải trùng `CABINET_ID` trong firmware; tủ thật gửi bản tin lên broker sẽ tự gắn vào bản đồ.
 
 ## Bật GitHub Pages (làm 1 lần)
 Settings → Pages → Source: **Deploy from a branch** → Branch **main**, thư mục **/ (root)** → Save.
 
 ## Lưu ý
-- Dữ liệu ở chế độ Demo là mẫu. Broker MQTT công cộng chỉ để thử; dùng thật cần broker riêng có mật khẩu.
+- Chế độ Demo là mạng mẫu 3 tủ · 6 tuyến · 42 cột. Broker MQTT công cộng chỉ để thử; dùng thật cần broker riêng có mật khẩu.
+- Đo dòng từng tuyến (`r`, `rcb`) và đóng lại CB từ xa (`rcb`, `cb`) là phần mở rộng – xem `firmware/README.md`.
 - Firmware mới kiểm tra cú pháp, chưa biên dịch trên bộ công cụ ESP32 thật – chạy thử trên Wokwi trước.
 - Mọi đấu nối vào điện 220/380 V do thợ điện có chuyên môn thực hiện.
+- `ban-do-chieu-sang.html` chỉ còn chuyển hướng về `./#/ban-do` cho link cũ.
 - Three.js r128 (MIT) kèm trong `vendor/`.

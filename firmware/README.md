@@ -1,7 +1,7 @@
 # Firmware gateway tủ điều khiển chiếu sáng – ESP32 (giao thức v2)
 
 - Firmware: `tu_chieu_sang/tu_chieu_sang.ino`
-- App điều khiển (điện thoại + máy tính): `../index.html`, mở tại `https://phucle-gps.github.io/CSCC/`
+- Phần mềm giám sát (Bản đồ 3D + SCADA + điều khiển): `../index.html`, mở tại `https://phucle-gps.github.io/CSCC/`
 
 ## Tủ làm được gì
 
@@ -103,3 +103,19 @@ App chờ `ack` tối đa 10 giây. Không có phản hồi thì báo "Tủ khô
 - **Mất mạng**: cảnh báo giữ trong hàng đợi (20 bản tin) + ghi thẻ SD, có mạng lại thì gửi bù. Lịch vẫn chạy bằng giờ NTP đã đồng bộ.
 
 Ngưỡng nằm ở đầu file `.ino`, cần chỉnh theo tải từng tủ. App dùng cùng ngưỡng ở mục `CFG`.
+
+## 6. Mở rộng: đo dòng từng tuyến (để Bản đồ 3D / SCADA ước tính vị trí đứt cáp)
+
+Firmware hiện đo tổng 3 pha của cả tủ. Để phần mềm chỉ ra **tuyến nào, đứt sau cột số mấy**, mỗi tuyến ra cần một đồng hồ/CT riêng (ví dụ thêm PZEM-016 địa chỉ 4, 5… trên cùng bus RS485). Khi có, gửi thêm trong `telemetry`:
+
+| Trường | Ví dụ | Ý nghĩa |
+|---|---|---|
+| `r` | `{"R1":[2.04,1.36,1.36],"R2":[1.35,1.35,0.68]}` | Dòng 3 pha (A) của từng tuyến, mã tuyến trùng khối `NET` trong app |
+| `rcb` | `{"R1":1,"R2":0}` | Trạng thái CB nhánh từng tuyến (tiếp điểm phụ OF), 0 = cắt/nhảy |
+
+Cảnh báo theo tuyến dùng `phase` = mã tuyến (`"R1"`) và thêm `est` (số cột còn sáng tính từ tủ):
+`{"code":"CAT_CAP","phase":"R1","state":"on","est":4,...}` – mã khác: `MAT_DIEN_TUYEN`, `CB_NHANH`, `HONG_BONG`.
+
+Lệnh mở rộng (chỉ khi CB có motor đóng lại từ xa): `<ref> rcb R1 1` (đóng lại CB nhánh), `<ref> cb 1` (đóng lại CB tổng). Tủ phải tự kiểm tra còn ngắn mạch không và trả `ok:0` nếu CB nhảy lại.
+
+Chưa có các trường này thì phần mềm vẫn chạy: bản đồ coi cả tuyến sáng khi kênh đóng và không ước tính được vị trí.
