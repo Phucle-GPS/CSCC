@@ -3023,25 +3023,37 @@ const G3 = {
       el.setPointerCapture(e.pointerId); this.pts.set(e.pointerId, {x: e.clientX, y: e.clientY, b: e.button, sh: e.shiftKey}); this.down = {x: e.clientX, y: e.clientY, t: Date.now()}; this.goal = null;
       const rot = e.button === 2 || e.shiftKey || (e.button === 0 && this.tool === 'rotate');
       el.style.cursor = rot ? 'move' : 'grabbing';
+      // Xoay quanh đúng điểm vừa bấm (không chỉ quanh tâm màn hình)
+      if (rot) { let pv = this.ground(e.clientX, e.clientY); if (pv && Math.hypot(pv.x - this.cam.tx, pv.z - this.cam.tz) > this.cam.r * 1.5) pv = null;   // điểm quá xa (gần chân trời) → xoay quanh tâm
+        const p = this.pts.get(e.pointerId); p.pv = pv; p.sx = e.clientX; p.sy = e.clientY; this.pivotMark = pv ? {x: e.clientX, y: e.clientY} : null; }
     });
     el.addEventListener('pointermove', e => {
       const p = this.pts.get(e.pointerId); if (!p) return;
       const dx = e.clientX - p.x, dy = e.clientY - p.y, c = this.cam;
       if (this.pts.size === 1) {
         const rotate = p.b === 2 || p.sh || (p.b === 0 && this.tool === 'rotate');
-        if (rotate) { c.theta -= dx * 0.006; if (this.mode3d) c.phi = Math.min(1.35, Math.max(0.15, c.phi - dy * 0.005)); }
+        if (rotate) {
+          c.theta -= dx * 0.006; if (this.mode3d) c.phi = Math.min(1.48, Math.max(0.12, c.phi - dy * 0.005));
+          c.theta = ((c.theta + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI;      // xoay vòng 360° không giới hạn
+          this.keepAt(p.pv, p.sx, p.sy);
+        }
         else this.grabPan(p.x, p.y, e.clientX, e.clientY);
       } else if (this.pts.size === 2) {
-        const [a, b] = [...this.pts.values()], d0 = Math.hypot(a.x - b.x, a.y - b.y), m0 = [(a.x + b.x) / 2, (a.y + b.y) / 2];
+        // Hai ngón: chụm = phóng, vặn = xoay 360°, kéo = di chuyển – tất cả quanh điểm giữa hai ngón
+        const [a, b] = [...this.pts.values()], d0 = Math.hypot(a.x - b.x, a.y - b.y), m0 = [(a.x + b.x) / 2, (a.y + b.y) / 2], an0 = Math.atan2(b.y - a.y, b.x - a.x);
+        const pv = this.ground(m0[0], m0[1]);
         p.x = e.clientX; p.y = e.clientY;
-        const [a2, b2] = [...this.pts.values()], d1 = Math.hypot(a2.x - b2.x, a2.y - b2.y), m1 = [(a2.x + b2.x) / 2, (a2.y + b2.y) / 2];
+        const [a2, b2] = [...this.pts.values()], d1 = Math.hypot(a2.x - b2.x, a2.y - b2.y), m1 = [(a2.x + b2.x) / 2, (a2.y + b2.y) / 2], an1 = Math.atan2(b2.y - a2.y, b2.x - a2.x);
         if (d0 > 0 && d1 > 0) c.r = Math.min(40000, Math.max(25, c.r * d0 / d1));
-        this.pan(m1[0] - m0[0], m1[1] - m0[1]); this.dirty = true; return;
+        let da = an1 - an0; if (da > Math.PI) da -= 2 * Math.PI; if (da < -Math.PI) da += 2 * Math.PI;
+        if (d1 > 40) c.theta -= da;
+        if (pv) this.keepAt(pv, m1[0], m1[1]); else this.pan(m1[0] - m0[0], m1[1] - m0[1]);
+        this.dirty = true; return;
       }
       p.x = e.clientX; p.y = e.clientY; this.dirty = true;
     });
     const up = e => {
-      this.pts.delete(e.pointerId); if (!this.pts.size) el.style.cursor = this.tool === 'rotate' ? 'move' : 'grab';
+      this.pts.delete(e.pointerId); if (!this.pts.size) { el.style.cursor = this.tool === 'rotate' ? 'move' : 'grab'; this.pivotMark = null; this.dirty = true; }
       if (this.down && e.type === 'pointerup' && Math.hypot(e.clientX - this.down.x, e.clientY - this.down.y) < 7 && Date.now() - this.down.t < 450) this.pick(e);
       this.down = null;
     };
@@ -3075,6 +3087,16 @@ const G3 = {
     const g0 = this.ground(x0, y0), g1 = this.ground(x1, y1);
     if (g0 && g1 && Math.abs(g0.x - g1.x) + Math.abs(g0.z - g1.z) < this.cam.r * 4) { this.cam.tx += g0.x - g1.x; this.cam.tz += g0.z - g1.z; this.placeCam(); }
     else this.pan(x1 - x0, y1 - y0);
+  },
+  // Dời tâm để điểm mặt đất pv nằm đúng vị trí màn hình (sx, sy) sau khi xoay / nghiêng / phóng
+  keepAt(pv, sx, sy) {
+    this.placeCam(); if (!pv) return;
+    for (let it = 0; it < 3; it++) {
+      const g = this.ground(sx, sy); if (!g) return;
+      const ex = pv.x - g.x, ez = pv.z - g.z; if (Math.abs(ex) + Math.abs(ez) > this.cam.r * 6) return;
+      this.cam.tx += ex; this.cam.tz += ez; this.placeCam();
+      if (Math.abs(ex) + Math.abs(ez) < 0.01) break;
+    }
   },
   setTool(t) {
     this.tool = t; store.set('gst3.mapTool', t);
@@ -3235,6 +3257,7 @@ const G3 = {
         label(LG.PN[i], s[0] + 4, s[1] - 9, '500 10px system-ui', '#f57c00', 0); n++;
       }
     }
+    if (this.pivotMark) { const rc = cv.getBoundingClientRect(), x = this.pivotMark.x - rc.left, y = this.pivotMark.y - rc.top; g.strokeStyle = '#36c5f0'; g.lineWidth = 2; g.beginPath(); g.arc(x, y, 9, 0, 7); g.moveTo(x - 14, y); g.lineTo(x + 14, y); g.moveTo(x, y - 14); g.lineTo(x, y + 14); g.stroke(); }   // tâm xoay
     // Ghim đánh dấu của sự cố đang mở
     App.incidents.filter(x => x.status !== 'done' && x.mark && x.mark.pole !== undefined).forEach(x => { const s = proj(LG.PX[x.mark.pole], LG.PY[x.mark.pole]); if (s) { g.font = '20px system-ui'; g.textAlign = 'center'; g.fillText('📍', s[0], s[1] - 6); } });
   },
