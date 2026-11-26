@@ -34,6 +34,10 @@ App đọc `pack.gz` và `base.gz` của repo **LIGHTING-GIS**: ưu tiên `../LI
 - Sau mỗi lần đồng bộ, cây cáp, dòng chuẩn, định vị đứt cáp, bản đồ và SCADA tính lại; sự cố đang mở và giả lập được giữ theo mã trụ.
 - Phóng to bản đồ để thấy **cần đèn và bộ đèn** vẽ theo hướng thật, màu theo loại đèn (xanh LED, cam HPS, tím MH, hồng trang trí).
 
+## Lớp bản đồ và mô hình trụ 3D
+- Nút **🗂️ Lớp** trên bản đồ: bật/tắt nền đường, sông, ranh phường, tên đường, cáp ngầm, cáp nổi, trụ, cần + bộ đèn, quầng sáng, tủ, nhãn trụ, dòng điện. App nhớ lựa chọn trên máy.
+- Chế độ **3D** khi phóng to: trụ thép côn / bê tông / trang trí có đế, cần đèn cong vươn theo hướng và độ vươn trong LIGHTING-GIS, bộ đèn ở đầu cần (mặt đèn sáng khi đèn đang sáng), đèn trang trí dạng quả cầu. Chỉ dựng các trụ quanh chỗ đang xem để máy yếu vẫn chạy được.
+
 ## Bật GitHub Pages (làm 1 lần)
 Settings → Pages → Source: **Deploy from a branch** → Branch **main**, thư mục **/ (root)** → Save.
 
