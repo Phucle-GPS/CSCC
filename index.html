@@ -183,6 +183,11 @@ body.fullmap main{max-width:none;padding:0}
 .mtools{left:10px;top:56px;display:flex;gap:6px;flex-wrap:wrap;max-width:calc(100% - 20px)}
 .mtools button,.mtools a{background:rgba(10,16,24,.85);border:1px solid #24384b;color:#dbe9f5;border-radius:9px;padding:6px 10px;font-size:12.5px;font-weight:600;cursor:pointer}
 .mtools .on{border-color:#36c5f0;color:#36c5f0}
+.mlayers{left:10px;top:100px;background:rgba(10,16,24,.94);border:1px solid #24384b;border-radius:12px;padding:10px;width:290px;max-width:calc(100% - 20px)}
+.mlayers .row{gap:6px;margin-bottom:8px}.mlayers button{background:#111b26;border:1px solid #24384b;color:#9fb3c6;border-radius:8px;padding:6px 8px;font-size:12px;font-weight:600;cursor:pointer}
+.mlayers .lgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.mlayers .lgrid button.on{border-color:#36c5f0;color:#e6f7fd;background:#0f2a38}
+.mlayers .lgrid button:not(.on){text-decoration:line-through;opacity:.7}.mlayers p{margin:8px 0 0;font-size:11px;color:#8aa2b8}
+@media (max-width:760px){.mlayers{top:150px}}
 .qchips{display:flex;gap:4px;flex-wrap:wrap}
 .qchips button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:4px 10px;font-size:12.5px;font-weight:700;cursor:pointer;border-left:4px solid var(--qc,var(--line))}
 .qchips button small{font-weight:500;color:var(--muted);margin-left:4px}
@@ -406,7 +411,7 @@ const LG = {
   },
   compose() {
     const D = this.D, LM = this.LM, ED = this.ED, X0 = this.X0, Y0 = this.Y0;
-    const P = [], PXa = [], PYa = [], PAa = [], LAMPS = [], NEWa = [], base2i = new Int32Array(D.p.length).fill(-1), idIdx = new Map();
+    const P = [], PXa = [], PYa = [], PAa = [], LAMPS = [], NEWa = [], PKa = [], base2i = new Int32Array(D.p.length).fill(-1), idIdx = new Map();
     const pe = (t, id, nw) => { const e = ED[t]; return e ? (nw ? (e.np || {})[id] : (e.p || {})[id]) : null; };
     // Trụ gốc (bỏ trụ đã xoá) – vị trí: chỉnh sửa > dời sát mép đường (snap) > gốc
     for (let b = 0; b < D.p.length; b++) {
@@ -418,7 +423,7 @@ const LG = {
       const p = p0.slice(); if (e && e.name) p[0] = e.name; if (moved) { p[11] = ''; p[12] = ''; }
       const kind = e && e.k != null ? e.k : this.kind0(p0);
       const i = P.length; base2i[b] = i; idIdx.set(p0[9], i);
-      P.push(p); PXa.push(x); PYa.push(y); NEWa.push(0);
+      P.push(p); PXa.push(x); PYa.push(y); NEWa.push(0); PKa.push(kind);
       PAa.push(e && e.a != null ? e.a : (p0[18] != null && !lk ? p0[18] : p0[13]));
       LAMPS.push(this.lampsOf(LM.p[b] || null, e, kind, p0[0]));
     }
@@ -427,11 +432,11 @@ const LG = {
       const n = ED[t].np[id]; if (!this.byT[t] || n.del) continue;
       const kind = n.k ?? 1, i = P.length; idIdx.set(id, i);
       P.push([n.name || id, +t, -1, n.x - X0, n.y - Y0, 0, -1, -1, -1, id, '', '', '', n.a ?? 90, 0, n.w ?? 0, '', 'Vẽ thêm trên LIGHTING-GIS']);
-      PXa.push(n.x - X0); PYa.push(n.y - Y0); PAa.push(n.a ?? 90); NEWa.push(1);
+      PXa.push(n.x - X0); PYa.push(n.y - Y0); PAa.push(n.a ?? 90); NEWa.push(1); PKa.push(kind);
       LAMPS.push(this.lampsOf(null, n, kind, n.name || ''));
     }
     const n = P.length; this.n = n; this.P = P; this.idIdx = idIdx; this.LAMPS = LAMPS;
-    this.PID = P.map(p => p[9]); this.PNEW = Uint8Array.from(NEWa);
+    this.PID = P.map(p => p[9]); this.PNEW = Uint8Array.from(NEWa); this.PK = Uint8Array.from(PKa);
     this.PX = Float32Array.from(PXa); this.PY = Float32Array.from(PYa); this.PA = Float32Array.from(PAa);
     this.PT = new Int32Array(n); this.PI = new Float32Array(n); this.PL = new Uint8Array(n); this.PN = []; this.PLT = [];
     for (let i = 0; i < n; i++) {
@@ -1864,7 +1869,10 @@ document.addEventListener('click', async e => {
     case 'sc-sel': App.scSel = +el.dataset.t; render(true); break;
     case 'sc-open': App.scSel = +el.dataset.t; location.hash = '#/scada'; break;
     case 'ctl-more': App.ctlN += 48; render(true); break;
-    case 'm-flow': G3.flow = !G3.flow; el.classList.toggle('on', G3.flow); break;
+    case 'm-flow': G3.setLayer('dong', !G3.flow); el.classList.toggle('on', G3.flow); { const b = document.querySelector('[data-act="m-layer"][data-val="dong"]'); if (b) b.classList.toggle('on', G3.flow); } break;
+    case 'm-layers': { const p = document.getElementById('mLayers'); if (p) { p.hidden = !p.hidden; el.classList.toggle('on', !p.hidden); } break; }
+    case 'm-layer': { const k = el.dataset.val, on = !G3.layer[k]; G3.setLayer(k, on); el.classList.toggle('on', on); if (k === 'dong') { const b = document.querySelector('[data-act="m-flow"]'); if (b) b.classList.toggle('on', on); } break; }
+    case 'm-layer-all': { const on = el.dataset.val === '1'; G3.LAYERS.forEach(([k]) => G3.setLayer(k, on)); document.querySelectorAll('[data-act="m-layer"]').forEach(b => b.classList.toggle('on', on)); const f = document.querySelector('[data-act="m-flow"]'); if (f) f.classList.toggle('on', on); break; }
     case 'm-unsel': G3.select(null); break;
     case 'm-focus': G3.focusSel(); break;
     case 'm-mark': markLocation(+el.dataset.pole, el.dataset.kind); G3.tick(); break;
@@ -2751,7 +2759,7 @@ const G3 = {
     this.cam3 = new T.PerspectiveCamera(40, 1, 1, 120000);
     this.sc = new T.Scene();
     this.ray = new T.Raycaster(); this.plane = new T.Plane(new T.Vector3(0, 1, 0), 0);
-    this.build(); this.applyTheme(); this.bind();
+    this.flow = this.layer.dong; this.build(); this.applyTheme(); this.bind();
   },
   glow() {
     if (this._g) return this._g;
@@ -2786,7 +2794,7 @@ const G3 = {
   },
   // Dựng lại lớp lưới điện khi LIGHTING-GIS đồng bộ vị trí trụ/tủ/cáp mới
   rebuildNet() {
-    for (const k of ['cables', 'poles', 'glows', 'sticks', 'cabPts', 'cabBox', 'cutLines', 'flowPts', 'ring']) {
+    for (const k of ['cables', 'poles', 'glows', 'shaft', 'plinth', 'armMesh', 'headMesh', 'lensMesh', 'globeMesh', 'headGlow', 'cabPts', 'cabBox', 'cutLines', 'flowPts', 'ring']) {
       const o = this[k]; if (!o) continue; this.sc.remove(o); o.geometry && o.geometry.dispose(); o.material && o.material.dispose();
     }
     this.buildNet(); this.applyTheme(); this.flowAt = 0; this.dirty = true; this.tick();
@@ -2798,6 +2806,7 @@ const G3 = {
     for (let k = 0; k < m; k++) { const a = LG.SA[k], b = LG.SB[k]; pos.set([LG.PX[a], 0.6, -LG.PY[a], LG.PX[b], 0.6, -LG.PY[b]], k * 6); }
     const cg = new T.BufferGeometry(); cg.setAttribute('position', new T.BufferAttribute(pos, 3)); cg.setAttribute('color', new T.BufferAttribute(col, 3));
     this.cables = new T.LineSegments(cg, new T.LineBasicMaterial({vertexColors: true})); this.cables.frustumCulled = false; this.sc.add(this.cables);
+    this.cableIndex();
     this.segCab = new Int32Array(m); for (let k = 0; k < m; k++) this.segCab[k] = LG.PT[LG.SA[k]];
     // Trụ: chấm (luôn thấy) + quầng sáng đèn (đêm)
     const n = LG.n, pp = new Float32Array(n * 3), pc = new Float32Array(n * 3), gp = new Float32Array(n * 3), gc = new Float32Array(n * 3);
@@ -2806,11 +2815,8 @@ const G3 = {
     this.poles = new T.Points(pg, new T.PointsMaterial({size: 5, sizeAttenuation: false, vertexColors: true, map: this.dot(), transparent: true, alphaTest: 0.3})); this.poles.frustumCulled = false; this.sc.add(this.poles);
     const gg = new T.BufferGeometry(); gg.setAttribute('position', new T.BufferAttribute(gp, 3)); gg.setAttribute('color', new T.BufferAttribute(gc, 3));
     this.glows = new T.Points(gg, new T.PointsMaterial({size: 26, sizeAttenuation: true, vertexColors: true, map: this.glow(), transparent: true, depthWrite: false, blending: T.AdditiveBlending})); this.glows.frustumCulled = false; this.sc.add(this.glows);
-    // Cột đèn 3D (chỉ hiện khi xem 3D ở gần)
-    const pg2 = new T.CylinderGeometry(0.15, 0.22, 9, 6); pg2.translate(0, 4.5, 0);
-    this.sticks = new T.InstancedMesh(pg2, new T.MeshBasicMaterial({color: 0x9aa39d}), n);
-    const mtx = new T.Matrix4(); for (let i = 0; i < n; i++) { mtx.makeTranslation(LG.PX[i], 0, -LG.PY[i]); this.sticks.setMatrixAt(i, mtx); }
-    this.sticks.visible = false; this.sc.add(this.sticks);
+    this.buildModels();
+    const mtx = new T.Matrix4();
     // Tủ: chấm lớn + khối 3D
     const nc = LG.cabs.length, cp = new Float32Array(nc * 3), cc = new Float32Array(nc * 3);
     LG.cabs.forEach((c, k) => cp.set([c.x, 2, -c.y], k * 3));
@@ -2835,8 +2841,122 @@ const G3 = {
     this.sc.background = new T.Color(P.bg);
     const set = (o, c, op) => { o.material.color.set(c); o.material.transparent = op < 1; o.material.opacity = op; };
     set(this.L.edge, P.edge, 1); set(this.L.tim, P.tim, 1); set(this.L.river, P.river, 1); set(this.L.ward, P.ward, 0.8); set(this.L.ranh, P.ward, 0.35);
-    this.sticks.material.color.set(P.pole);
+    this.applyLayers();
     this.dirty = true; this.lastStat = '';
+  },
+
+  // Trụ đèn 3D như thật: thân thuôn + đế, cần đèn cong vươn theo hướng LIGHTING-GIS, bộ đèn ở đầu cần, đèn trang trí dạng quả cầu
+  poleSpec(i) {
+    const k = LG.PK[i];
+    if (k === 0) return {h: 10, r0: 0.17, r1: 0.11, col: 0xb9b4aa};     // trụ BTLT điện lực
+    if (k === 2) return {h: 4.2, r0: 0.11, r1: 0.07, col: 0x3d4a44, deco: true};   // trụ trang trí (gang)
+    if (k === 3 || k === 4 || k === 5) return null;                       // không trụ (gắn tường) / tủ
+    return {h: 9, r0: 0.13, r1: 0.06, col: 0xa7b0b5};                     // trụ thép STK côn
+  },
+  armReach(name) { const m = /vươn\s*([\d,.]+)(?:\s*-\s*([\d,.]+))?\s*m/i.exec(name || ''); if (!m) return 1.6; const a = parseFloat(m[1].replace(',', '.')), b = m[2] ? parseFloat(m[2].replace(',', '.')) : a; return Math.min(4.5, Math.max(1, (a + b) / 2)); },
+  // Chỉ dựng mô hình cho các trụ quanh tầm nhìn (tối đa vài nghìn) – cập nhật khi di chuyển camera
+  buildModels() {
+    const T = THREE, CS = 2500, CA = 4000, CG = 1000;
+    const sg = new T.CylinderGeometry(1, 1, 1, 8, 1); sg.translate(0, 0.5, 0);
+    const pos = sg.attributes.position; for (let j = 0; j < pos.count; j++) { const y = pos.getY(j), f = 1 - 0.55 * y; pos.setX(j, pos.getX(j) * f); pos.setZ(j, pos.getZ(j) * f); }
+    this.shaft = new T.InstancedMesh(sg, new T.MeshLambertMaterial({color: 0xffffff}), CS);
+    const bg = new T.CylinderGeometry(0.32, 0.36, 0.35, 8); bg.translate(0, 0.17, 0);
+    this.plinth = new T.InstancedMesh(bg, new T.MeshLambertMaterial({color: 0x8d948f}), CS);
+    const curve = new T.QuadraticBezierCurve3(new T.Vector3(0, -0.55, 0), new T.Vector3(0.05, 0.35, 0), new T.Vector3(1, 0.42, 0));
+    this.armMesh = new T.InstancedMesh(new T.TubeGeometry(curve, 8, 0.045, 5, false), new T.MeshLambertMaterial({color: 0xb7c0c4}), CA);
+    const hg = new T.BoxGeometry(0.78, 0.13, 0.34); hg.translate(0.3, -0.02, 0);
+    const lg = new T.BoxGeometry(0.62, 0.02, 0.26); lg.translate(0.32, -0.095, 0);
+    this.headMesh = new T.InstancedMesh(hg, new T.MeshLambertMaterial({color: 0xffffff}), CA);
+    this.lensMesh = new T.InstancedMesh(lg, new T.MeshBasicMaterial({color: 0xffffff}), CA);
+    this.globeMesh = new T.InstancedMesh(new T.SphereGeometry(0.28, 12, 8), new T.MeshBasicMaterial({color: 0xffffff}), CG);
+    const hp = new Float32Array((CA + CG) * 3), hgm = new T.BufferGeometry();
+    hgm.setAttribute('position', new T.BufferAttribute(hp, 3)); hgm.setAttribute('color', new T.BufferAttribute(new Float32Array(hp.length), 3)); hgm.setDrawRange(0, 0);
+    this.headGlow = new T.Points(hgm, new T.PointsMaterial({size: 3.2, sizeAttenuation: true, vertexColors: true, map: this.glow(), transparent: true, depthWrite: false, blending: T.AdditiveBlending}));
+    // khởi tạo màu từng bản (instanceColor) để tô lại được
+    const w = new T.Color(0xffffff);
+    for (const [m, c] of [[this.shaft, CS], [this.headMesh, CA], [this.lensMesh, CA], [this.globeMesh, CG]]) { for (let k = 0; k < c; k++) m.setColorAt(k, w); m.count = 0; }
+    this.plinth.count = this.armMesh.count = 0;
+    this.CAP = {s: CS, a: CA, g: CG}; this.armPole = new Int32Array(0); this.globePole = new Int32Array(0); this.modelKey = '';
+    if (!this.lights) { this.lights = [new T.AmbientLight(0xffffff, 0.75), new T.DirectionalLight(0xffffff, 0.6)]; this.lights[1].position.set(0.4, 1, 0.3); this.lights.forEach(l => this.sc.add(l)); }
+    this.models = [this.shaft, this.plinth, this.armMesh, this.headMesh, this.lensMesh, this.globeMesh, this.headGlow];
+    this.models.forEach(o => { o.frustumCulled = false; o.visible = false; this.sc.add(o); });
+  },
+  refreshModels() {
+    const c = this.cam, X = c.tx, Y = -c.tz, R = Math.min(600, Math.max(150, c.r * 3.2));
+    const key = Math.round(X / 25) + ':' + Math.round(Y / 25) + ':' + Math.round(R / 40) + ':' + LG.ver;
+    if (key === this.modelKey) return; this.modelKey = key;
+    const T = THREE, mtx = new T.Matrix4(), q = new T.Quaternion(), up = new T.Vector3(0, 1, 0), zA = new T.Vector3(0, 0, 1), tilt = new T.Quaternion().setFromAxisAngle(zA, -0.12);
+    const v = new T.Vector3(), sc = new T.Vector3(), col = new T.Color(), CAP = this.CAP, TCOL = {LED: 0xe6edf2, HPS: 0x9aa3a8, MH: 0xc9c2e0};
+    const G = 50, gx = Math.floor(X / G), gy = Math.floor(Y / G), kk = Math.ceil(R / G), list = [];
+    for (let a = -kk; a <= kk; a++) for (let b = -kk; b <= kk; b++) for (const i of LG.grid.get((gx + a) + ':' + (gy + b)) || []) { const d = (LG.PX[i] - X) ** 2 + (LG.PY[i] - Y) ** 2; if (d < R * R) list.push([d, i]); }
+    list.sort((p1, p2) => p1[0] - p2[0]);
+    let ns = 0, na = 0, ng = 0; const armPole = [], globePole = [], hp = this.headGlow.geometry.attributes.position.array, A = [0, Math.PI, Math.PI / 2, -Math.PI / 2];
+    for (const [, i] of list) {
+      const sp = this.poleSpec(i); if (!sp) continue;
+      if (ns >= CAP.s) break;
+      const L = LG.LAMPS[i] || [], deco = sp.deco || (L.length && L.every(l => l.t === 'TT')), lamps = deco ? [] : L.filter(l => l.t !== 'TT').slice(0, 4);
+      if (na + lamps.length > CAP.a || (deco && L.length && ng >= CAP.g)) break;
+      const px = LG.PX[i], pz = -LG.PY[i];
+      sc.set(sp.r0, sp.h, sp.r0); mtx.compose(v.set(px, 0, pz), q.identity(), sc); this.shaft.setMatrixAt(ns, mtx); this.shaft.setColorAt(ns, col.set(sp.col));
+      mtx.makeTranslation(px, 0, pz); this.plinth.setMatrixAt(ns, mtx); ns++;
+      if (deco) {
+        if (!L.length) continue;
+        mtx.makeTranslation(px, sp.h + 0.3, pz); this.globeMesh.setMatrixAt(ng, mtx); globePole.push(i);
+        hp.set([px, sp.h + 0.3, pz], (CAP.a + ng) * 3); ng++; continue;
+      }
+      const base = LG.PA[i] * Math.PI / 180;
+      lamps.forEach((l, m) => {
+        const ang = base + (l.rel != null ? l.rel * Math.PI / 180 : A[m]), reach = this.armReach(l.arm), top = sp.h + 0.1;
+        q.setFromAxisAngle(up, ang);
+        mtx.compose(v.set(px, top, pz), q, sc.set(reach, 1, 1)); this.armMesh.setMatrixAt(na, mtx);
+        const ex = px + Math.cos(ang) * reach, ez = pz - Math.sin(ang) * reach;
+        mtx.compose(v.set(ex, top + 0.42, ez), q.clone().multiply(tilt), sc.set(1, 1, 1)); this.headMesh.setMatrixAt(na, mtx); this.lensMesh.setMatrixAt(na, mtx);
+        this.headMesh.setColorAt(na, col.set(TCOL[l.t] || 0xd9dee2));
+        hp.set([px + Math.cos(ang) * (reach + 0.3), sp.h - 0.1, pz - Math.sin(ang) * (reach + 0.3)], na * 3);
+        armPole.push(i); na++;
+      });
+    }
+    this.shaft.count = this.plinth.count = ns; this.armMesh.count = this.headMesh.count = this.lensMesh.count = na; this.globeMesh.count = ng;
+    for (const m of [this.shaft, this.plinth, this.armMesh, this.headMesh, this.lensMesh, this.globeMesh]) { m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; }
+    this.armPole = Int32Array.from(armPole); this.globePole = Int32Array.from(globePole);
+    // gom quầng sáng: [đèn cần 0..na) + [cầu CAP.a..CAP.a+ng) → dồn lại liền nhau
+    hp.copyWithin(na * 3, CAP.a * 3, (CAP.a + ng) * 3);
+    this.headGlow.geometry.setDrawRange(0, na + ng); this.headGlow.geometry.attributes.position.needsUpdate = true;
+    if (this.litFn) this.recolorModels(this.litFn, this.night);
+  },
+  // Tô bộ đèn 3D sáng/tắt theo trạng thái ước tính
+  recolorModels(lit, night) {
+    if (!this.lensMesh) return;
+    const T = THREE, c = new T.Color(), on = new T.Color(night ? 0xfff1b8 : 0xf7f3e0), off = new T.Color(0x3b3f42);
+    for (let k = 0; k < this.armPole.length; k++) this.lensMesh.setColorAt(k, lit(this.armPole[k]) ? on : off);
+    if (this.lensMesh.instanceColor) this.lensMesh.instanceColor.needsUpdate = true;
+    for (let k = 0; k < this.globePole.length; k++) this.globeMesh.setColorAt(k, lit(this.globePole[k]) ? on : c.set(0x6b6f72));
+    if (this.globeMesh.instanceColor) this.globeMesh.instanceColor.needsUpdate = true;
+    const hc = this.headGlow.geometry.attributes.color.array, na = this.armPole.length;
+    for (let k = 0; k < na + this.globePole.length; k++) { const i = k < na ? this.armPole[k] : this.globePole[k - na], g = lit(i) && night ? 0.9 : 0; hc[k * 3] = g; hc[k * 3 + 1] = g * 0.88; hc[k * 3 + 2] = g * 0.6; }
+    this.headGlow.geometry.attributes.color.needsUpdate = true;
+  },
+  // Lớp bản đồ bật/tắt được
+  LAYERS: [['nen', 'Nền đường'], ['song', 'Sông, kênh'], ['ranh', 'Ranh phường'], ['ten', 'Tên đường'], ['ngam', 'Cáp ngầm'], ['noi', 'Cáp nổi'], ['tru', 'Trụ'], ['den', 'Cần + bộ đèn'], ['quang', 'Quầng sáng'], ['tu', 'Tủ'], ['nhan', 'Nhãn trụ'], ['dong', 'Dòng điện']],
+  layer: Object.assign({nen: true, song: true, ranh: true, ten: true, ngam: true, noi: true, tru: true, den: true, quang: true, tu: true, nhan: true, dong: true}, store.get('gst3.layers', {})),
+  setLayer(k, on) {
+    this.layer[k] = on; store.set('gst3.layers', this.layer);
+    if (k === 'dong') this.flow = on;
+    if (k === 'ngam' || k === 'noi') this.cableIndex();
+    this.applyLayers(); this.dirty = true;
+  },
+  applyLayers() {
+    if (!this.L) return;
+    const Y = this.layer;
+    this.L.edge.visible = this.L.tim.visible = Y.nen; this.L.river.visible = Y.song; this.L.ward.visible = this.L.ranh.visible = Y.ranh;
+    if (this.poles) this.poles.visible = Y.tru;
+    if (this.glows) this.glows.visible = Y.quang;
+    if (this.cabPts) this.cabPts.visible = Y.tu;
+  },
+  cableIndex() {
+    if (!this.cables) return;
+    const idx = []; for (let k = 0; k < LG.SA.length; k++) if (LG.ST[k] ? this.layer.noi : this.layer.ngam) idx.push(2 * k, 2 * k + 1);
+    this.cables.geometry.setIndex(idx); this.dirty = true;
   },
   // Tô màu cáp, trụ, tủ theo trạng thái ước tính – chỉ chạy lại khi có thay đổi
   recolor() {
@@ -2866,6 +2986,7 @@ const G3 = {
     const cl = this.cutLines.geometry.attributes.position.array; let q = 0;
     LG.cabs.forEach(g => { const e = est[g.t]; (e.cand || []).slice(0, 4).forEach(i => { if (q >= 64) return; const p = LG.PP[i]; const ax = p >= 0 ? LG.PX[p] : g.x, ay = p >= 0 ? LG.PY[p] : g.y; cl.set([ax, 1.2, -ay, LG.PX[i], 1.2, -LG.PY[i]], q * 6); q++; }); if (e.allDead && g.root !== undefined && q < 64) { cl.set([g.x, 1.2, -g.y, LG.PX[g.root], 1.2, -LG.PY[g.root]], q * 6); q++; } });
     this.cutLines.geometry.setDrawRange(0, q * 2); this.cutLines.geometry.attributes.position.needsUpdate = true;
+    this.recolorModels(lit, night);
     this.est = est; this.deadSet = deadSet; this.litFn = lit;
   },
   bind() {
@@ -2974,7 +3095,10 @@ const G3 = {
     const pulse = 0.5 + 0.5 * Math.sin(time * 6);
     this.cutLines.material.opacity = 0.35 + pulse * 0.65;
     const close = this.cam.r < 2500;
-    this.sticks.visible = this.mode3d && close; this.cabBox.visible = this.mode3d && close;
+    const Y = this.layer, m3 = this.mode3d && close;
+    this.shaft.visible = this.plinth.visible = m3 && Y.tru; this.armMesh.visible = this.headMesh.visible = this.lensMesh.visible = this.globeMesh.visible = m3 && Y.den;
+    this.headGlow.visible = m3 && Y.den && Y.quang && this.night;
+    if (m3 && (Y.tru || Y.den)) this.refreshModels(); this.cabBox.visible = m3 && Y.tu;
     this.poles.material.size = this.cam.r < 600 ? 7 : this.cam.r < 2500 ? 5 : 3;
     // Vòng chọn
     const s = this.sel;
@@ -3026,17 +3150,18 @@ const G3 = {
       g.save(); g.translate(x, y); if (rot) g.rotate(rot); g.lineWidth = 3; g.strokeStyle = P.halo; g.textAlign = 'center'; g.textBaseline = 'middle';
       g.strokeText(txt, 0, 0); g.fillStyle = fill; g.fillText(txt, 0, 0); g.restore();
     };
-    if (k < 0.6) this.drawLamps(g, proj, W, H, k);
+    const Y = this.layer;
+    if (k < 0.6 && !this.mode3d && Y.den) this.drawLamps(g, proj, W, H, k);
     // Tủ có sự cố + tủ đang chọn luôn có nhãn
     const sel = this.sel;
     LG.cabs.forEach(c => {
       const st = cabStatus(c.t), important = st === 'bad' || st === 'warn' || (sel && sel.kind === 'cab' && sel.t === c.t);
-      if (!important && k > 1.2) return;
+      if (!important && (k > 1.2 || !Y.tu)) return;
       const s = proj(c.x, c.y); if (!s || s[0] < -40 || s[0] > W + 40 || s[1] < -20 || s[1] > H + 20) return;
       label((st === 'bad' ? '⚠ ' : '') + c.id, s[0], s[1] - 14, `700 ${important ? 12 : 11}px system-ui`, st === 'bad' ? '#f87171' : st === 'warn' ? '#fbbf24' : (this.theme === 'dark' ? '#e6f2fb' : '#17212b'), 0);
     });
-    if (k > 6) LG.wtexts.forEach(t => { const s = proj(t.x, t.y); if (s) label(t.s.toUpperCase(), s[0], s[1], '700 12px system-ui', P.ward, 0); });
-    if (k < 3) {
+    if (k > 6 && Y.ranh) LG.wtexts.forEach(t => { const s = proj(t.x, t.y); if (s) label(t.s.toUpperCase(), s[0], s[1], '700 12px system-ui', P.ward, 0); });
+    if (k < 3 && Y.ten) {
       let n = 0;
       for (const t of LG.texts) {
         if (n > 260) break;
@@ -3047,7 +3172,7 @@ const G3 = {
         label(t.s, s[0], s[1], `${t.hem ? 400 : 600} ${Math.min(14, Math.max(10, px))}px system-ui`, t.k === 'rtext' ? P.river : P.road, this.mode3d ? 0 : r); n++;
       }
     }
-    if (k < 0.35) {
+    if (k < 0.35 && Y.nhan) {
       const c = this.cam, X = c.tx, Y = -c.tz, rr = c.r * 0.8; let n = 0;
       const G = 50, gx = Math.floor(X / G), gy = Math.floor(Y / G), kk = Math.ceil(rr / G);
       for (let a = -kk; a <= kk && n < 160; a++) for (let b = -kk; b <= kk && n < 160; b++) for (const i of LG.grid.get((gx + a) + ':' + (gy + b)) || []) {
@@ -3145,7 +3270,11 @@ function viewMap() {
     <div class="mov msearch"><input id="mapQ" placeholder="Tìm tủ, trụ, địa chỉ…" autocomplete="off" value="${esc(App.mapQ || '')}"><div id="mapRes"></div></div>
     <div class="mov mtools">${qChips('m-q')}
       <button data-act="m-fit">🎯 Toàn cảnh</button><button data-act="m-3d" class="${G3.mode3d ? 'on' : ''}">${G3.mode3d ? '🗺️ 2D' : '🧊 3D'}</button>
-      <button data-act="m-flow" class="${G3.flow ? 'on' : ''}">⚡ Dòng</button><button data-act="m-theme">${G3.theme === 'dark' ? '☀️ Nền sáng' : '🌙 Nền tối'}</button></div>
+      <button data-act="m-flow" class="${G3.flow ? 'on' : ''}">⚡ Dòng</button><button data-act="m-theme">${G3.theme === 'dark' ? '☀️ Nền sáng' : '🌙 Nền tối'}</button>
+      <button data-act="m-layers">🗂️ Lớp</button></div>
+    <div class="mov mlayers" id="mLayers" hidden><div class="row"><b class="grow">Lớp bản đồ</b><button data-act="m-layer-all" data-val="1">Bật hết</button><button data-act="m-layer-all" data-val="0">Tắt hết</button></div>
+      <div class="lgrid">${G3.LAYERS.map(([k, nm]) => `<button data-act="m-layer" data-val="${k}" class="${G3.layer[k] ? 'on' : ''}">${nm}</button>`).join('')}</div>
+      <p>Cần + bộ đèn: phóng to để thấy; ở chế độ 3D hiện mô hình trụ, cần và bộ đèn.</p></div>
     <div class="mov mkpi" id="mapKpi"></div>
     <div class="mov minfo" id="mapInfo" hidden></div>
     <div class="mov mbanner" id="mapBanner" hidden></div>
