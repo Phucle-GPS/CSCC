@@ -21,6 +21,19 @@ App đọc `pack.gz` và `base.gz` của repo **LIGHTING-GIS**: ưu tiên `../LI
 
 **Mã tủ** trong firmware (`CABINET_ID`) đặt **trùng mã KNTT của LIGHTING-GIS** (ví dụ `T002.04`, `EC04.15`) hoặc mã PE; tủ thật gửi bản tin lên broker sẽ tự gắn vào đúng vị trí trên bản đồ và SCADA.
 
+## Tự đồng bộ với LIGHTING-GIS
+| Đối tượng | Đồng bộ |
+|---|---|
+| **Trụ đèn** | Vị trí (kể cả trụ đã dời sát mép đường), tên, loại trụ, trụ xoá, trụ vẽ thêm |
+| **Cần đèn** | Loại cần (theo thống kê cần đèn), hướng xoay của trụ và của từng cần |
+| **Bộ đèn** | Loại (LED/HPS/MH/trang trí), công suất, số bộ – dùng để tính dòng chuẩn |
+| **Cáp, tủ** | Đoạn cáp vẽ thêm/xoá/đổi ngầm-nổi, vị trí tủ |
+
+- **Chỉnh sửa chung** (lưu trên máy chủ Apps Script của LIGHTING-GIS): kéo về **mỗi 60 giây** và khi mở lại app. Cần đăng nhập tài khoản LIGHTING-GIS (quyền *Chỉ xem* là đủ) ở **Cài đặt → Đồng bộ với LIGHTING-GIS**; nếu trình duyệt đã đăng nhập LIGHTING-GIS thì CSCC tự dùng phiên đó (cùng tên miền).
+- **Dữ liệu gốc** `pack.gz`: kiểm tra bản mới **mỗi 15 phút**.
+- Sau mỗi lần đồng bộ, cây cáp, dòng chuẩn, định vị đứt cáp, bản đồ và SCADA tính lại; sự cố đang mở và giả lập được giữ theo mã trụ.
+- Phóng to bản đồ để thấy **cần đèn và bộ đèn** vẽ theo hướng thật, màu theo loại đèn (xanh LED, cam HPS, tím MH, hồng trang trí).
+
 ## Bật GitHub Pages (làm 1 lần)
 Settings → Pages → Source: **Deploy from a branch** → Branch **main**, thư mục **/ (root)** → Save.
 
