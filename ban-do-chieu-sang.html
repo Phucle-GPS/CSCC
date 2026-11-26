@@ -132,6 +132,7 @@ tr.unack.clr{background:rgba(52,211,153,.08)}
   <div class="brand"><b>Bản đồ chiếu sáng 3D + SCADA</b><small class="mono">CS-MAP-01 · KHU VỰC A · <span id="modeTxt">VẬN HÀNH</span></small></div>
   <div class="chip mono" title="Giờ mô phỏng"><span id="dayIco">🌙</span><span id="clk">--:--</span>
     <select id="speed" aria-label="Tốc độ thời gian"><option value="1">1×</option><option value="30" selected>30×</option><option value="300">300×</option></select></div>
+  <a class="chip" id="fbChip" href="#" target="_blank" rel="noopener" title="Gửi góp ý / báo lỗi">💬<span class="hide-m"> Góp ý</span></a>
   <a class="chip hide-m" href="./" title="Về app điều khiển tủ">↩ App</a>
 </header>
 
@@ -1192,6 +1193,15 @@ document.addEventListener('change', e => {
 document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => setTab(b.dataset.tab));
 document.querySelectorAll('nav.mob button').forEach(b => b.onclick = () => setMobile(b.dataset.m));
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeFp(); if (e.key === 'Enter' && e.target.classList && e.target.classList.contains('scen')) e.target.click(); });
+
+/* ---------- Góp ý ---------- */
+function feedbackUrl() {
+  const where = Train.cur ? `Bản đồ 3D – bài đào tạo "${Train.cur.title}"` : 'Bản đồ 3D + SCADA';
+  const body = `**Trang đang xem:** ${where}\n**Thiết bị:** ${navigator.userAgent}\n**Màn hình:** ${innerWidth}×${innerHeight}\n\n### Góp ý / lỗi gặp phải\n\n\n### Mong muốn sửa thành\n\n\n_(Kéo thả ảnh chụp màn hình vào đây nếu có)_`;
+  return 'https://github.com/Phucle-GPS/CSCC/issues/new?title=' + encodeURIComponent('Góp ý bản đồ 3D: ') + '&body=' + encodeURIComponent(body);
+}
+document.addEventListener('pointerdown', e => { const a = e.target.closest('#fbChip'); if (a) a.href = feedbackUrl(); }, true);
+document.addEventListener('focusin', e => { if (e.target.id === 'fbChip') e.target.href = feedbackUrl(); });
 
 /* ---------- Khởi động ---------- */
 initState();

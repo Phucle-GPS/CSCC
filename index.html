@@ -170,6 +170,8 @@ pre.report{white-space:pre-wrap;background:var(--soft);padding:10px;border-radiu
 .v3info{position:absolute;left:10px;right:10px;bottom:10px;background:var(--card);border-radius:12px;padding:10px 12px;box-shadow:0 4px 18px rgba(0,0,0,.25);max-height:48%;overflow:auto}
 @media (min-width:900px){.v3info{right:auto;width:400px}}
 @media (max-width:420px){.two{grid-template-columns:1fr}}
+@media (max-width:600px){.hide-s{display:none}}
+button.hchip{border:0;cursor:pointer}
 </style>
 </head>
 <body>
@@ -178,6 +180,8 @@ pre.report{white-space:pre-wrap;background:var(--soft);padding:10px;border-radiu
   <div class="hwrap">
     <div class="brand">Điều khiển tủ chiếu sáng<small id="hsub">App cá nhân</small></div>
     <div class="hchip" id="clockChip" title="Giờ mô phỏng"><span id="dayIcon">🌙</span><span id="simTime">--:--</span></div>
+    <button class="hchip" id="installBtn" hidden title="Cài app lên máy">📲<span class="hide-s"> Cài app</span></button>
+    <a class="hchip" id="fbChip" href="#" target="_blank" rel="noopener" title="Gửi góp ý / báo lỗi">💬<span class="hide-s"> Góp ý</span></a>
     <a class="hchip" href="#/cai-dat" id="connChip" title="Kết nối"><span class="dot" id="connDot"></span><span id="connTxt">Demo</span></a>
   </div>
 </header>
@@ -1085,6 +1089,11 @@ function viewSettings() {
     <div class="panel"><div class="row"><h2 class="grow">Bản tin MQTT</h2><button class="btn sm" data-act="console-clear">Xoá</button></div>
       <p class="sub">Bản tin trao đổi giữa tủ và app: đo lường, cảnh báo (đỏ), lệnh (tím), phản hồi lệnh (vàng).</p>
       <div class="console" id="console"></div></div>
+    <div class="panel"><h2>Cài app & góp ý</h2>
+      <p class="sub"><b>Máy tính (Chrome / Edge):</b> bấm biểu tượng ⊕ "Cài đặt" ở cuối thanh địa chỉ, hoặc nút 📲 Cài app phía trên. App mở trong cửa sổ riêng, có biểu tượng trên màn hình nền.<br>
+      <b>Android:</b> menu ⋮ → Thêm vào màn hình chính. <b>iPhone:</b> Safari → Chia sẻ → Thêm vào MH chính.</p>
+      <div class="btns"><button class="btn" data-act="install" id="installBtn2">📲 Cài app</button><a class="btn pri" id="fbBtn" href="#" target="_blank" rel="noopener">💬 Gửi góp ý / báo lỗi</a></div>
+      <p class="sub">Góp ý mở trang GitHub của repo CSCC với mẫu sẵn (trang đang xem, thiết bị). Có thể kéo thả ảnh chụp màn hình vào.</p></div>
     <div class="panel"><h2>Khác</h2><div class="btns" style="margin-top:0">
       <button class="btn" data-act="sound">${App.sound ? '🔔 Âm báo: BẬT' : '🔕 Âm báo: TẮT'}</button>
       <button class="btn danger" data-act="reset-inc">Xoá danh sách sự cố</button>
@@ -1247,6 +1256,7 @@ document.addEventListener('click', async e => {
       $('#mNo').onclick = closeModal; $('#mYes').onclick = () => copyText(r, 'Đã chép báo cáo');
       break;
     }
+    case 'install': doInstall(); break;
     case 'mq': mqToggle(); break;
     case 'v3-focus': V3.select(el.dataset.seg); document.getElementById('v3d')?.scrollIntoView({behavior: 'smooth', block: 'center'}); break;
     case 'v3-home': V3.sel = null; V3.home(); V3.tick(); break;
@@ -2056,6 +2066,24 @@ render(true);
 setInterval(loop, 1000);
 if (App.settings.mq.auto) mqToggle();
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
+
+/* ---------- Cài app (PWA) + góp ý ---------- */
+let installEvt = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; $('#installBtn').hidden = false; });
+window.addEventListener('appinstalled', () => { installEvt = null; $('#installBtn').hidden = true; toast('✔ Đã cài app'); });
+async function doInstall() {
+  if (installEvt) { installEvt.prompt(); const r = await installEvt.userChoice; if (r.outcome === 'accepted') $('#installBtn').hidden = true; installEvt = null; return; }
+  if (window.matchMedia('(display-mode: standalone)').matches) { toast('App đang chạy ở chế độ đã cài'); return; }
+  toast('Chrome/Edge: bấm biểu tượng ⊕ cuối thanh địa chỉ · Android: ⋮ → Thêm vào màn hình chính · iPhone: Chia sẻ → Thêm vào MH chính', 7000);
+}
+$('#installBtn').onclick = doInstall;
+function feedbackUrl() {
+  const page = 'App điều khiển tủ – ' + decodeURIComponent(location.hash || '#/');
+  const body = `**Trang đang xem:** ${page}\n**Thiết bị:** ${navigator.userAgent}\n**Màn hình:** ${innerWidth}×${innerHeight}\n\n### Góp ý / lỗi gặp phải\n\n\n### Mong muốn sửa thành\n\n\n_(Kéo thả ảnh chụp màn hình vào đây nếu có)_`;
+  return 'https://github.com/Phucle-GPS/CSCC/issues/new?title=' + encodeURIComponent('Góp ý: ') + '&body=' + encodeURIComponent(body);
+}
+document.addEventListener('pointerdown', e => { const a = e.target.closest('#fbChip,#fbBtn'); if (a) a.href = feedbackUrl(); }, true);
+document.addEventListener('focusin', e => { if (e.target.closest && e.target.closest('#fbChip,#fbBtn')) e.target.closest('#fbChip,#fbBtn').href = feedbackUrl(); });
 </script>
 </body>
 </html>
