@@ -1,16 +1,28 @@
 {
-  "name": "Điều khiển tủ chiếu sáng",
-  "short_name": "Tủ chiếu sáng",
-  "description": "Giám sát và điều khiển tủ chiếu sáng công cộng",
-  "start_url": "./",
+  "name": "Giám sát chiếu sáng công cộng",
+  "short_name": "Giám sát CS",
+  "description": "Giám sát hệ thống chiếu sáng từ xa qua bản đồ 3D và SCADA",
+  "start_url": "./#/ban-do",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f3f5f8",
   "theme_color": "#1a6fd8",
   "lang": "vi",
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
   ]
 }
