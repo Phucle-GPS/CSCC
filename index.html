@@ -195,7 +195,9 @@ body.fullmap main{max-width:none;padding:0}
 #mapRes button{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid #24384b;background:transparent;color:#dbe9f5;padding:7px 10px;cursor:pointer;font-size:13px}
 #mapRes button small{display:block;color:#8aa2b8;font-size:11.5px}
 .msrc{right:10px;bottom:10px;font-size:10.5px;color:#8aa2b8;background:rgba(10,16,24,.6);padding:2px 7px;border-radius:6px;pointer-events:none}
-@media (max-width:760px){.msrc{display:none}}
+.msync{right:10px;bottom:34px;text-align:right;font-size:11px;color:#9fd8ea;background:rgba(10,16,24,.72);padding:3px 8px;border-radius:6px;max-width:calc(100% - 20px)}
+.msync a{color:inherit;text-decoration:none}
+@media (max-width:760px){.msrc{display:none}.msync{bottom:auto;right:auto;left:10px;top:188px;font-size:10.5px;text-align:left}}
 .tiles{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0 12px;max-height:240px;overflow:auto;padding:2px}
 .tile{border:0;border-left:4px solid var(--qc);border-radius:6px;padding:4px 7px;font:600 11.5px ui-monospace,Menlo,monospace;cursor:pointer;background:#e6f6ec;color:#16653a}
 .tile.s-bad{background:#fdeaea;color:#b42323;animation:blinkA 1s steps(2,start) infinite}.tile.s-warn{background:#fff4dc;color:#8a5a00}.tile.s-off,.tile.s-none{background:#eef1f4;color:#6b7785}
@@ -318,11 +320,11 @@ const LG = {
   QNAME: ['Quận 1', 'Quận 3', 'Bình Thạnh', 'Phú Nhuận'], QSHORT: ['Q1', 'Q3', 'BT', 'PN'],
   QC: ['#e2632f', '#7a5cf0', '#13a37c', '#d39a0b'],          // màu quận theo LIGHTING-GIS
   ready: false, err: null, src: null,
-  async fetchText(name) {
+  async fetchText(name, fresh) {
     let lastErr = null;
     for (const base of this.SRC) {
       try {
-        const r = await fetch(base + name);
+        const r = await fetch(base + name, fresh ? {cache: 'no-store'} : undefined);
         if (!r.ok) { lastErr = new Error(r.status + ' ' + name); continue; }
         const u = new Uint8Array(await r.arrayBuffer());
         this.src = base;
@@ -335,63 +337,129 @@ const LG = {
     }
     throw lastErr || new Error('Không tải được ' + name);
   },
-  async load(onStep) {
-    onStep && onStep('Đang tải dữ liệu trụ, cáp, tủ từ LIGHTING-GIS…');
-    const pk = await this.fetchText('pack.gz');
+  async fetchPack(fresh) {
+    const pk = await this.fetchText('pack.gz', fresh);
     const nl = pk.indexOf('\n'), idx = JSON.parse(pk.slice(0, nl)), parts = {};
     let o = nl + 1; for (const [k, l] of idx) { parts[k] = pk.substr(o, l); o += l; }
+    return parts;
+  },
+  // Dấu nhận biết phiên bản pack.gz (ETag / ngày sửa / kích thước) – để biết khi LIGHTING-GIS có dữ liệu mới
+  async packSig() {
+    try {
+      const r = await fetch(this.src + 'pack.gz', {method: 'HEAD', cache: 'no-store'}); if (!r.ok) return '';
+      return r.headers.get('etag') || r.headers.get('last-modified') || r.headers.get('content-length') || '';
+    } catch (e) { return ''; }
+  },
+  async load(onStep) {
+    onStep && onStep('Đang tải dữ liệu trụ, cáp, tủ từ LIGHTING-GIS…');
+    const parts = await this.fetchPack();
+    LGSync.loadCache();                                   // chỉnh sửa đã đồng bộ lần trước – dùng ngay, kéo bản mới sau
     this.build(parts);
+    this.packSig().then(s => { this.sig = s; });
     onStep && onStep('Đang tải bản đồ nền CAD…');
     let b;
     try { b = JSON.parse(await this.fetchText('base.gz')); } catch (e) { b = JSON.parse(await this.fetchText('base.json')); }
     this.buildBase(b);
-    this.ready = true;
+    this.ready = true; this.loadedAt = Date.now();
   },
-  // ---------- Mạng điện: tủ → cây cáp → trụ → đèn ----------
+  // ---------- Mạng điện: tủ → cây cáp → trụ → cần đèn → bộ đèn ----------
+  // build(): đọc pack.gz (dữ liệu gốc). compose(): áp chỉnh sửa chung của LIGHTING-GIS (ED) lên dữ liệu gốc.
   build(parts) {
     const D = JSON.parse(parts.data), CAB = JSON.parse(parts.cab), LM = JSON.parse(parts.lamps), DIST = JSON.parse(parts.dist);
     for (const n of CAB.add || []) D.tu.push(n);
-    this.D = D; this.X0 = D.X0; this.Y0 = D.Y0;
-    const n = D.p.length;
-    this.n = n;
-    this.PX = new Float32Array(n); this.PY = new Float32Array(n); this.PT = new Int32Array(n);
-    this.PI = new Float32Array(n); this.PL = new Uint8Array(n);       // dòng đèn (A), số bóng
-    this.PN = []; this.PLT = [];                                       // tên trụ, mô tả đèn
-    const W = LM.W || [], typeName = {M: 'MH', H: 'HPS', L: 'LED', T: 'Trang trí'};
-    const dflW = {M: 150, H: 150, L: 100, T: 60};
-    for (let i = 0; i < n; i++) {
-      const p = D.p[i], sn = p[14];
-      this.PX[i] = p[3] + (sn ? sn[0] : 0); this.PY[i] = p[4] + (sn ? sn[1] : 0);
-      this.PT[i] = p[1]; this.PN[i] = p[0];
-      const lm = LM.p[i];
-      let I = 0, cnt = 0, txt = [];
-      if (lm) {
-        const ty = [...lm[0]], wi = lm[1] || [];
-        ty.forEach((c, k) => {
-          const ws = W[wi[k]] || '', m = /(\d+)\s*W/i.exec(ws), w = m ? +m[1] : (dflW[c] || 100);
-          const led = c === 'L';
-          I += w * (led ? 1 : 1.12) / (230 * (led ? 0.95 : 0.9));      // bóng phóng điện có tổn hao chấn lưu
-          cnt++; txt.push(ws || `${typeName[c] || 'Đèn'} ~${w}W`);
-        });
-      } else { I = 100 / (230 * 0.95); cnt = 1; txt.push('Chưa có dữ liệu đèn (coi như LED 100W)'); }
-      this.PI[i] = I; this.PL[i] = cnt; this.PLT[i] = txt;
-    }
-    const S = D.s, m = S.length;
-    this.SA = new Int32Array(m); this.SB = new Int32Array(m); this.ST = new Uint8Array(m); this.SL = new Float32Array(m);
-    for (let k = 0; k < m; k++) { this.SA[k] = S[k][0]; this.SB[k] = S[k][1]; this.ST[k] = S[k][2]; this.SL[k] = S[k][3]; }
-    // Tủ: chỉ lấy tủ có toạ độ
-    const used = new Map(); this.cabs = []; this.byT = {}; this.byId = {};
-    const raw = CAB.c;
+    this.D = D; this.LM = LM; this.CAB0 = CAB.c; this.X0 = D.X0; this.Y0 = D.Y0;
+    // Tủ: giữ nguyên đối tượng qua các lần đồng bộ (thiết bị, SCADA tham chiếu tới)
+    const used = new Map(), old = this.byT || {}; this.cabs = []; this.byT = {}; this.byId = {};
     for (let t = 0; t < D.tu.length; t++) {
-      const c = raw[t]; if (!c) continue;
+      const c = CAB.c[t]; if (!c) continue;
       let id = (c[10] || '').trim();
       if (!id || used.has(id)) id = 'TU' + t;
       used.set(id, t);
-      const q = DIST.q[t] ?? 2;
-      const cab = {t, id, name: D.tu[t], x: c[0], y: c[1], q, ward: c[6] || '', addr: c[4] || '', mgr: c[3] || '', pe: c[2] || '',
-        kntt: !!c[8], comm: c[9] || '', nlamp: c[5] || 0, mix: c[14] || {}, cNoi: c[11] || 0, cNgam: c[12] || 0, poles: [], exp: 0};
+      const cab = Object.assign(old[t] || {}, {t, id, name: D.tu[t], x0: c[0], y0: c[1], x: c[0], y: c[1], q: DIST.q[t] ?? 2, ward: c[6] || '', addr: c[4] || '', mgr: c[3] || '', pe: c[2] || '',
+        kntt: !!c[8], comm: c[9] || '', nlamp: c[5] || 0, mix: c[14] || {}, cNoi: c[11] || 0, cNgam: c[12] || 0});
       this.cabs.push(cab); this.byT[t] = cab; this.byId[id] = cab;
       if (c[2]) this.byId[c[2]] = cab;
+    }
+    this.compose();
+  },
+  ED: {},                                   // chỉnh sửa chung theo tủ: {p, s, np, ns, cab, auto} – giống LIGHTING-GIS
+  C2T: {L: 'LED', H: 'HPS', M: 'MH', T: 'TT'},
+  LTN: {LED: 'LED', HPS: 'HPS (cao áp sodium)', MH: 'MH (metal halide)', TT: 'Trang trí'},
+  DFW: {LED: 100, HPS: 150, MH: 150, TT: 60},
+  lock(t) { const e = this.ED[t]; if (!e || e.auto) return false; return Object.keys(e.p || {}).length + Object.keys(e.s || {}).length + Object.keys(e.np || {}).length + Object.keys(e.ns || {}).length + Object.keys(e.hn || {}).length > 0 || !!e.cab; },
+  kind0(p) { const l = (this.D.lt[p[6]] || '').toLowerCase(); return l.includes('điện lực') ? 0 : l.includes('trang trí') ? 2 : l.includes('không có trụ') ? 3 : 1; },
+  nLamp0(name) { const m = String(name).match(/\((\d+)\s*đèn\)/i); return m ? Math.min(4, +m[1]) : 1; },
+  // Danh sách bộ đèn của trụ: [{t: LED/HPS/MH/TT, w: 'LED 100W…', W: số W, arm: 'Cần đơn D60', rel: góc lệch (độ) hoặc null}]
+  lampsOf(d, e, kind, name) {
+    const LM = this.LM, C2T = this.C2T;
+    let L;
+    if (e && Array.isArray(e.lts) && !e.lt) L = e.lts.slice();
+    else if (e && e.lt) L = e.lt === 'NONE' ? [] : Array(Math.max(1, e.nl || (d && d[0].length) || this.nLamp0(name))).fill(e.lt);
+    else if (d) { let c = [...d[0]].map(x => C2T[x] || null); const kn = c.find(x => x); c = c.map(x => x || kn || 'LED'); if (e && e.nl) { while (c.length < e.nl) c.push(c[c.length - 1] || 'LED'); c = c.slice(0, e.nl); } L = c; }
+    else if (kind === 4 || kind === 5) L = [];
+    else L = Array((e && e.nl) || this.nLamp0(name)).fill(kind === 2 ? 'TT' : 'LED');
+    const la = (e && e.la) || {};
+    return L.map((t, k) => {
+      const same = d && C2T[d[0][k]] === t, ws = same ? (LM.W[(d[1] || [])[k]] || '') : '', m = /(\d+)\s*W/i.exec(ws);
+      return {t, w: ws || `${t} ~${this.DFW[t] || 100}W`, W: m ? +m[1] : (this.DFW[t] || 100), arm: d && k < (d[2] || []).length ? (LM.A[d[2][k]] || '') : '', rel: la[k] ?? null};
+    });
+  },
+  compose() {
+    const D = this.D, LM = this.LM, ED = this.ED, X0 = this.X0, Y0 = this.Y0;
+    const P = [], PXa = [], PYa = [], PAa = [], LAMPS = [], NEWa = [], base2i = new Int32Array(D.p.length).fill(-1), idIdx = new Map();
+    const pe = (t, id, nw) => { const e = ED[t]; return e ? (nw ? (e.np || {})[id] : (e.p || {})[id]) : null; };
+    // Trụ gốc (bỏ trụ đã xoá) – vị trí: chỉnh sửa > dời sát mép đường (snap) > gốc
+    for (let b = 0; b < D.p.length; b++) {
+      const p0 = D.p[b], t = p0[1], e = pe(t, p0[9], false);
+      if (e && e.del) continue;
+      const lk = this.lock(t), sn = p0[14];
+      let x = p0[3], y = p0[4], moved = false;
+      if (e && e.x != null) { x = e.x - X0; y = e.y - Y0; moved = true; } else if (sn && !lk) { x += sn[0]; y += sn[1]; }
+      const p = p0.slice(); if (e && e.name) p[0] = e.name; if (moved) { p[11] = ''; p[12] = ''; }
+      const kind = e && e.k != null ? e.k : this.kind0(p0);
+      const i = P.length; base2i[b] = i; idIdx.set(p0[9], i);
+      P.push(p); PXa.push(x); PYa.push(y); NEWa.push(0);
+      PAa.push(e && e.a != null ? e.a : (p0[18] != null && !lk ? p0[18] : p0[13]));
+      LAMPS.push(this.lampsOf(LM.p[b] || null, e, kind, p0[0]));
+    }
+    // Trụ vẽ thêm trên LIGHTING-GIS
+    for (const t in ED) for (const id in ED[t].np || {}) {
+      const n = ED[t].np[id]; if (!this.byT[t] || n.del) continue;
+      const kind = n.k ?? 1, i = P.length; idIdx.set(id, i);
+      P.push([n.name || id, +t, -1, n.x - X0, n.y - Y0, 0, -1, -1, -1, id, '', '', '', n.a ?? 90, 0, n.w ?? 0, '', 'Vẽ thêm trên LIGHTING-GIS']);
+      PXa.push(n.x - X0); PYa.push(n.y - Y0); PAa.push(n.a ?? 90); NEWa.push(1);
+      LAMPS.push(this.lampsOf(null, n, kind, n.name || ''));
+    }
+    const n = P.length; this.n = n; this.P = P; this.idIdx = idIdx; this.LAMPS = LAMPS;
+    this.PID = P.map(p => p[9]); this.PNEW = Uint8Array.from(NEWa);
+    this.PX = Float32Array.from(PXa); this.PY = Float32Array.from(PYa); this.PA = Float32Array.from(PAa);
+    this.PT = new Int32Array(n); this.PI = new Float32Array(n); this.PL = new Uint8Array(n); this.PN = []; this.PLT = [];
+    for (let i = 0; i < n; i++) {
+      this.PT[i] = P[i][1]; this.PN[i] = P[i][0];
+      const L = LAMPS[i]; let I = 0;
+      for (const l of L) { const led = l.t === 'LED'; I += l.W * (led ? 1 : 1.12) / (230 * (led ? 0.95 : 0.9)); }   // bóng phóng điện có tổn hao chấn lưu
+      this.PI[i] = I; this.PL[i] = L.length; this.PLT[i] = L.length ? L.map(l => l.w) : ['Không có đèn'];
+    }
+    // Cáp: gốc (trừ đoạn xoá / đổi loại) + cáp vẽ thêm
+    const SA = [], SB = [], ST = [], SL = [];
+    for (const s of D.s) {
+      const a = base2i[s[0]], b = base2i[s[1]]; if (a < 0 || b < 0) continue;
+      const t = D.p[s[0]][1], key = D.p[s[0]][9] + '>' + D.p[s[1]][9], o = ED[t] && (ED[t].s || {})[key];
+      if (o && o.del) continue;
+      SA.push(a); SB.push(b); ST.push(o && o.t != null ? o.t : s[2]);
+      const ed = (ED[t] && ((ED[t].p || {})[D.p[s[0]][9]] || (ED[t].p || {})[D.p[s[1]][9]])) || (s[3] == null);
+      SL.push(ed ? Math.hypot(PXa[b] - PXa[a], PYa[b] - PYa[a]) : s[3]);
+    }
+    for (const t in ED) for (const key in ED[t].ns || {}) {
+      const q = ED[t].ns[key], a = idIdx.get(q.a), b = idIdx.get(q.b); if (a == null || b == null || q.del) continue;
+      SA.push(a); SB.push(b); ST.push(q.t || 0); SL.push(Math.hypot(PXa[b] - PXa[a], PYa[b] - PYa[a]));
+    }
+    this.SA = Int32Array.from(SA); this.SB = Int32Array.from(SB); this.ST = Uint8Array.from(ST); this.SL = Float32Array.from(SL);
+    // Vị trí tủ (có thể đã dời trên LIGHTING-GIS)
+    for (const cab of this.cabs) {
+      const o = ED[cab.t] && ED[cab.t].cab;
+      if (o && o.x != null) { cab.x = o.x - X0; cab.y = o.y - Y0; } else { cab.x = cab.x0; cab.y = cab.y0; }
+      cab.poles = []; cab.exp = 0;
     }
     for (let i = 0; i < n; i++) { const cab = this.byT[this.PT[i]]; if (cab) cab.poles.push(i); }
     this.buildTrees();
@@ -402,6 +470,12 @@ const LG = {
     this.cgrid = new Map();
     this.cabs.forEach((c, ci) => { const k = Math.floor(c.x / G) + ':' + Math.floor(c.y / G); let a = this.cgrid.get(k); if (!a) this.cgrid.set(k, a = []); a.push(ci); });
     this.bbox = (() => { let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; this.cabs.forEach(c => { x0 = Math.min(x0, c.x); x1 = Math.max(x1, c.x); y0 = Math.min(y0, c.y); y1 = Math.max(y1, c.y); }); return [x0, y0, x1, y1]; })();
+    this.ver = (this.ver || 0) + 1;
+  },
+  // Tổng hợp cần đèn / bộ đèn của một trụ để hiển thị
+  lampSummary(i) {
+    const L = this.LAMPS[i] || [], cnt = (arr) => { const m = new Map(); arr.filter(Boolean).forEach(x => m.set(x, (m.get(x) || 0) + 1)); return [...m].map(([k, v]) => (v > 1 ? v + ' × ' : '') + k).join(', '); };
+    return {lamps: cnt(L.map(l => l.w)) || 'Không có đèn', arms: cnt(L.map(l => l.arm)) || '—', ang: Math.round(((this.PA[i] % 360) + 360) % 360)};
   },
   // Dựng cây cáp của từng tủ: gốc = trụ gần tủ nhất; nhánh rời được nối giả định vào trụ gần nhất
   buildTrees() {
@@ -442,7 +516,7 @@ const LG = {
       cab.len = Math.max(...ids.map(i => this.PD[i]));
       // Nhánh (tuyến) theo LIGHTING-GIS
       const tr = new Map();
-      for (const i of order) { const k = this.D.p[i][2]; if (!tr.has(k)) tr.set(k, []); tr.get(k).push(i); }
+      for (const i of order) { const k = this.P[i][2]; if (!tr.has(k)) tr.set(k, []); tr.get(k).push(i); }
       cab.routes = [...tr.entries()].map(([k, ps]) => ({k, name: this.D.tuy[k] || 'Tuyến', poles: ps}));
     }
   },
@@ -455,7 +529,7 @@ const LG = {
     return out.slice(0, 6).map(o => o.i);
   },
   poleName(i) { return this.PN[i] || ('Trụ ' + i); },
-  street(i) { return this.D.duong[this.D.p[i][7]] || ''; },
+  street(i) { return this.D.duong[this.P[i][7]] || ''; },
   where(i) {
     const p = this.PP[i], cab = this.byT[this.PT[i]];
     return `${p >= 0 ? `giữa trụ ${this.poleName(p)} và ${this.poleName(i)}` : `giữa tủ và trụ ${this.poleName(i)}`}${this.street(i) ? ' – ' + this.street(i) : ''} (≈ ${Math.round(this.PD[i])} m theo cáp từ ${cab ? cab.id : 'tủ'})`;
@@ -481,6 +555,150 @@ const LG = {
     this.wtexts = (b.wtext || []).map(t => ({s: t[0], x: t[1] / 10, y: t[2] / 10}));
   }
 };
+/* ---------------------------------------------------------------------
+   Đồng bộ tự động với LIGHTING-GIS
+   1) Chỉnh sửa chung (dời trụ, xoay cần/bộ đèn, đổi loại đèn, vẽ thêm trụ/cáp, dời tủ):
+      kéo từ máy chủ Apps Script của LIGHTING-GIS mỗi 60 giây – dùng chung phiên đăng nhập
+      với LIGHTING-GIS khi cùng trình duyệt (cùng tên miền phucle-gps.github.io).
+   2) Dữ liệu gốc pack.gz: kiểm tra bản mới mỗi 15 phút, có thì tải lại.
+   Vị trí trụ đổi → cây cáp, dòng chuẩn, định vị đứt cáp, bản đồ, SCADA cập nhật theo.
+--------------------------------------------------------------------- */
+const LGSync = {
+  TKEY: 'lg_tok_v2', CKEY: 'gst3.lgEd',
+  api: '', since: '', lastPull: 0, lastPack: 0, total: 0, me: null, err: '', busy: false, changes: 0, log: [],
+  tok() { try { return localStorage.getItem(this.TKEY) || ''; } catch (e) { return ''; } },
+  setTok(t) { try { t ? localStorage.setItem(this.TKEY, t) : localStorage.removeItem(this.TKEY); } catch (e) { /* bỏ qua */ } },
+  async apiUrl() {
+    if (this.api) return this.api;
+    for (const base of LG.SRC) {
+      try {
+        const r = await fetch(base + 'config.js', {cache: 'no-store'}); if (!r.ok) continue;
+        const m = /api\s*:\s*['"]([^'"]+)['"]/.exec(await r.text());
+        if (m && /^https:\/\/script\.google(usercontent)?\.com\//.test(m[1].trim())) return (this.api = m[1].trim());
+      } catch (e) { /* thử nguồn khác */ }
+    }
+    throw new Error('Không đọc được địa chỉ máy chủ LIGHTING-GIS (config.js)');
+  },
+  async call(a, p) {
+    const url = await this.apiUrl(); let r, j;
+    try { r = await fetch(url, {method: 'POST', body: JSON.stringify({a, tok: this.tok(), ...(p || {})})}); } catch (e) { const x = new Error('Không kết nối được máy chủ LIGHTING-GIS'); x.code = 'net'; throw x; }
+    try { j = await r.json(); } catch (e) { const x = new Error('Máy chủ trả lời không hợp lệ (' + r.status + ')'); x.code = 'net'; throw x; }
+    if (!j.ok) { const x = new Error(j.msg || j.err || 'Lỗi máy chủ'); x.code = j.err; throw x; }
+    return j;
+  },
+  loadCache() {
+    try { const c = JSON.parse(localStorage.getItem(this.CKEY) || 'null'); if (c && c.ed) { LG.ED = c.ed; this.since = c.since || ''; this.total = Object.keys(c.ed).length; return true; } } catch (e) { /* bỏ qua */ }
+    return false;
+  },
+  saveCache() { try { localStorage.setItem(this.CKEY, JSON.stringify({since: this.since, ed: LG.ED})); } catch (e) { /* đầy bộ nhớ – lần sau kéo lại toàn bộ */ } },
+  note(msg) { this.log.unshift({at: Date.now(), msg}); this.log.length = Math.min(this.log.length, 20); },
+  async login(user, pw) {
+    const r = await this.call('login', {user: String(user).trim().toLowerCase(), pw});
+    this.setTok(r.tok || ''); this.me = r.me || null; this.err = ''; this.since = '';
+    await this.pull(true);
+  },
+  logout() { this.setTok(''); this.me = null; this.err = ''; },
+  // Kéo chỉnh sửa chung – chỉ những tủ thay đổi từ lần trước
+  async pull(force) {
+    if (!LG.ready || this.busy) return;
+    if (!this.tok()) { this.err = ''; return; }
+    this.busy = true;
+    try {
+      const r = await this.call('pull', {since: force ? '' : this.since});
+      if (r.me) this.me = r.me;
+      const nd = r.items.length; let changed = [];
+      for (const it of r.items) {
+        const m = /^t(\d+)_/.exec(it.key || ''); if (!m) continue;
+        const t = +m[1]; if (LG.D.tu[t] !== it.tu) continue;
+        let v; try { v = JSON.parse(it.json); } catch (e) { continue; }
+        const e = {p: v.p || {}, s: v.s || {}, np: v.np || {}, ns: v.ns || {}, hn: v.hn || {}, ...(v.cab ? {cab: v.cab} : {}), ...(v.auto ? {auto: 1} : {})};
+        const empty = !Object.keys(e.p).length && !Object.keys(e.s).length && !Object.keys(e.np).length && !Object.keys(e.ns).length && !e.cab;
+        const before = JSON.stringify(LG.ED[t] || null), after = empty ? 'null' : JSON.stringify(e);
+        if (before === after) continue;
+        if (empty) delete LG.ED[t]; else LG.ED[t] = e;
+        changed.push(t);
+      }
+      if (force) { /* lần đầu: tủ không còn trong danh sách = không có chỉnh sửa */ }
+      this.since = r.now || this.since; this.total = r.total ?? Object.keys(LG.ED).length; this.lastPull = Date.now(); this.err = '';
+      if (changed.length) {
+        this.changes += changed.length;
+        this.note(`Cập nhật ${changed.length} tủ: ${changed.slice(0, 6).map(t => LG.byT[t] ? LG.byT[t].id : t).join(', ')}${changed.length > 6 ? '…' : ''}`);
+        LGSync.apply();
+      }
+      this.saveCache();
+      void nd;
+    } catch (e) {
+      if (e.code === 'auth') { this.setTok(''); this.me = null; this.err = 'Phiên đăng nhập LIGHTING-GIS hết hiệu lực – đăng nhập lại để tiếp tục đồng bộ.'; }
+      else this.err = e.message;
+    } finally { this.busy = false; refreshSyncUi(); }
+  },
+  // Kiểm tra pack.gz có bản mới (sửa dữ liệu gốc trên GitHub)
+  async checkPack() {
+    if (!LG.ready || !LG.src) return;
+    this.lastPack = Date.now();
+    try {
+      const sig = await LG.packSig();
+      if (sig && LG.sig && sig !== LG.sig) {
+        const parts = await LG.fetchPack(true);
+        const ids = LG.PID.slice(); LG.build(parts); LG.sig = sig;
+        this.note('Dữ liệu gốc LIGHTING-GIS có bản mới – đã tải lại'); remapAfterCompose(ids);
+      }
+    } catch (e) { /* thử lại lần sau */ }
+    refreshSyncUi();
+  },
+  apply() { const ids = LG.PID.slice(); LG.compose(); remapAfterCompose(ids); },
+  start() {
+    if (this.started) return; this.started = true;
+    this.pull(); setInterval(() => this.pull(), 60000);
+    setInterval(() => this.checkPack(), 15 * 60000);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { this.pull(); if (Date.now() - this.lastPack > 5 * 60000) this.checkPack(); } });
+  }
+};
+// Sau khi đổi dữ liệu: chỉ số trụ có thể dịch → ánh xạ lại theo mã trụ (sự cố, giả lập, vùng chọn), dựng lại lớp bản đồ
+function remapAfterCompose(oldIds) {
+  const map = i => (i === null || i === undefined || i < 0) ? i : (LG.idIdx.get(oldIds[i]) ?? -1);
+  App.incidents.forEach(x => {
+    if (x.mark && x.mark.pole !== undefined) { const j = map(x.mark.pole); if (j >= 0) x.mark.pole = j; else delete x.mark; }
+    if (x.cand) x.cand = x.cand.map(map).filter(j => j >= 0);
+  });
+  Object.values(App.cabs).forEach(c => { const a = c.active && c.active.CAT_CAP; if (a && a.cand) a.cand = a.cand.map(map).filter(j => j >= 0); });
+  Object.values(App.devices || {}).forEach(d => {
+    if (!(d instanceof GisDevice)) return;
+    d.cuts = new Set([...d.cuts].map(map).filter(j => j >= 0)); d.fails = new Set([...d.fails].map(map).filter(j => j >= 0));
+    if (d.down !== null) { const j = map(d.down); d.down = j >= 0 ? j : null; } d.dead = null;
+  });
+  if (G3.sel && G3.sel.kind === 'pole') { const j = map(G3.sel.i); G3.sel = j >= 0 ? {kind: 'pole', i: j} : null; }
+  try { App.saveInc(); } catch (e) { /* bỏ qua */ }
+  if (G3.R) G3.rebuildNet();
+  if (['scada', 'cai-dat'].includes((location.hash.split('/')[1] || ''))) render(true);
+}
+function refreshSyncUi() {
+  const el = document.getElementById('lgSync'); if (el) el.outerHTML = syncPanel();
+  const m = document.getElementById('mapSync'); if (m) m.innerHTML = syncBadge();
+}
+function syncBadge() {
+  const S = LGSync, ago = t => { const s = Math.round((Date.now() - t) / 1000); return s < 60 ? 'vừa xong' : s < 3600 ? Math.round(s / 60) + ' phút trước' : Math.round(s / 3600) + ' giờ trước'; };
+  if (!S.tok()) return `<a href="#/cai-dat" title="Đăng nhập LIGHTING-GIS để tự đồng bộ chỉnh sửa">⚪ Chưa đồng bộ chỉnh sửa</a>`;
+  if (S.err) return `<a href="#/cai-dat" style="color:#fbbf24">⚠ Đồng bộ: ${esc(S.err)}</a>`;
+  return `🔄 Đồng bộ LIGHTING-GIS ${S.lastPull ? ago(S.lastPull) : '…'} · ${S.total} tủ có chỉnh sửa`;
+}
+function syncPanel() {
+  const S = LGSync, on = !!S.tok(), t = x => x ? new Date(x).toLocaleTimeString('vi-VN') : '—';
+  return `<div class="panel" id="lgSync"><h2>🔄 Đồng bộ với LIGHTING-GIS</h2>
+    <p class="sub">Tự lấy vị trí <b>trụ đèn</b>, hướng <b>cần đèn</b>, loại/công suất <b>bộ đèn</b>, trụ và cáp vẽ thêm, vị trí tủ từ LIGHTING-GIS: chỉnh sửa chung kiểm tra <b>mỗi 60 giây</b>, dữ liệu gốc (pack.gz) <b>mỗi 15 phút</b>. Đổi vị trí thì cây cáp, dòng chuẩn, định vị đứt cáp và SCADA tính lại theo.</p>
+    ${on ? `<p class="sub">✅ Đang đồng bộ${S.me ? ` · tài khoản <b>${esc(S.me.name || S.me.user || '')}</b>` : ''} · lần kéo gần nhất ${t(S.lastPull)} · <b>${S.total}</b> tủ có chỉnh sửa · đã nhận ${S.changes} lượt cập nhật.</p>
+      ${S.err ? `<p class="sub" style="color:var(--bad)">${esc(S.err)}</p>` : ''}
+      <div class="btns"><button class="btn pri" data-act="lgs-now">🔄 Đồng bộ ngay</button><button class="btn" data-act="lgs-out">Đăng xuất</button></div>
+      <p class="sub">Đăng xuất ở đây cũng đăng xuất LIGHTING-GIS trên trình duyệt này (dùng chung phiên).</p>`
+    : `${S.err ? `<p class="sub" style="color:var(--bad)">${esc(S.err)}</p>` : ''}
+      <p class="sub">Đăng nhập bằng <b>tài khoản LIGHTING-GIS</b> (quyền Chỉ xem là đủ). Nếu trình duyệt này đã đăng nhập LIGHTING-GIS thì app tự dùng phiên đó.</p>
+      <div class="row wrap"><input id="lgsU" placeholder="Tên đăng nhập" autocomplete="username" style="flex:1;min-width:140px"><input id="lgsP" type="password" placeholder="Mật khẩu" autocomplete="current-password" style="flex:1;min-width:140px">
+      <button class="btn pri" data-act="lgs-in">Đăng nhập & đồng bộ</button></div>
+      <p class="sub">Chưa đăng nhập: vẫn dùng dữ liệu gốc pack.gz (tự kiểm tra bản mới mỗi 15 phút), chỉ chưa có các chỉnh sửa lưu trên máy chủ.</p>`}
+    <p class="sub">Dữ liệu gốc: ${esc(LG.src || '—')} · kiểm tra lần cuối ${t(S.lastPack || LG.loadedAt)}</p>
+    ${S.log.length ? `<div class="sub">${S.log.slice(0, 5).map(l => `${new Date(l.at).toLocaleTimeString('vi-VN')} – ${esc(l.msg)}`).join('<br>')}</div>` : ''}
+  </div>`;
+}
 // Chuyển VN-2000 (TP.HCM, KTT 105°45', múi 3°) → WGS84 gần đúng – để mở Google Maps
 function vn2000ToWgs(X, Y) {
   const a = 6378137, f = 1 / 298.257223563, e2 = 2 * f - f * f, k0 = 0.9999, L0 = (105 + 45 / 60) * Math.PI / 180;
@@ -494,8 +712,8 @@ function vn2000ToWgs(X, Y) {
   const lon = L0 + (D - (1 + 2 * T1 + C1) * D ** 3 / 6) / Math.cos(phi1);
   return [lat * 180 / Math.PI, lon * 180 / Math.PI];
 }
-function polesLatLon(i) { const p = LG.D.p[i]; return p && p[11] && p[12] ? [+p[11], +p[12]] : vn2000ToWgs(LG.PX[i] + LG.X0, LG.PY[i] + LG.Y0); }
-function cabLatLon(c) { return c.root !== undefined ? polesLatLon(c.root) : vn2000ToWgs(c.x + LG.X0, c.y + LG.Y0); }
+function polesLatLon(i) { const p = LG.P[i]; return p && p[11] && p[12] ? [+p[11], +p[12]] : vn2000ToWgs(LG.PX[i] + LG.X0, LG.PY[i] + LG.Y0); }
+function cabLatLon(c) { return c.root >= 0 ? polesLatLon(c.root) : vn2000ToWgs(c.x + LG.X0, c.y + LG.Y0); }
 
 /* =====================================================================
    2. TIỆN ÍCH
@@ -1405,8 +1623,9 @@ function viewSettings() {
       <h3>Nhảy giờ</h3>
       <div class="btns" style="margin-top:0">${[['17:59:30', '17:59'], ['22:59:30', '22:59 (cắt nửa đêm)'], ['05:29:30', '05:29'], ['12:00:00', '12:00']].map(([v, nm]) => `<button class="btn sm" data-act="jump" data-val="${v}">${nm}</button>`).join('')}</div>
     </div>
+    ${LG.ready ? syncPanel() : ''}
     <div class="panel"><h2>Nguồn dữ liệu LIGHTING-GIS</h2>
-      ${LG.ready ? `<p class="sub">Đọc trực tiếp từ app LIGHTING-GIS (${esc(LG.src || '')}): <b>${LG.cabs.length}</b> tủ có toạ độ · <b>${LG.n.toLocaleString('vi-VN')}</b> trụ · <b>${LG.SA.length.toLocaleString('vi-VN')}</b> đoạn cáp · bản đồ nền ${LG.base.edge.length.toLocaleString('vi-VN')} mép đường, ${LG.texts.length.toLocaleString('vi-VN')} tên đường (VN-2000). Sửa dữ liệu bên LIGHTING-GIS thì app này tự dùng bản mới.</p>
+      ${LG.ready ? `<p class="sub">Đọc trực tiếp từ app LIGHTING-GIS (${esc(LG.src || '')}): <b>${LG.cabs.length}</b> tủ có toạ độ · <b>${LG.n.toLocaleString('vi-VN')}</b> trụ · <b>${LG.SA.length.toLocaleString('vi-VN')}</b> đoạn cáp · bản đồ nền ${LG.base.edge.length.toLocaleString('vi-VN')} mép đường, ${LG.texts.length.toLocaleString('vi-VN')} tên đường (VN-2000). Dữ liệu tự đồng bộ với LIGHTING-GIS (xem mục dưới).</p>
         <p class="sub">Mã tủ dùng cho firmware (CABINET_ID) là mã KNTT của tủ trong LIGHTING-GIS (vd. ${esc((LG.cabs.find(c => !/^TU\d/.test(c.id)) || LG.cabs[0]).id)}); tủ chưa có mã dùng dạng TU&lt;số&gt;. Tủ thật gửi bản tin với mã này sẽ tự gắn lên bản đồ.</p>` : `<p class="sub">${esc(LG.err || LG.step || 'Đang tải…')}</p>`}
       <button class="btn" data-act="gis-retry">🔄 Tải lại dữ liệu</button></div>
     <div class="panel"><div class="row"><h2 class="grow">Bản tin MQTT</h2><button class="btn sm" data-act="console-clear">Xoá</button></div>
@@ -1625,6 +1844,14 @@ document.addEventListener('click', async e => {
       break;
     }
     case 'gis-retry': LG.err = null; startGis(); render(true); break;
+    case 'lgs-now': LGSync.pull(); LGSync.checkPack(); toast('Đang đồng bộ với LIGHTING-GIS…'); break;
+    case 'lgs-out': LGSync.logout(); refreshSyncUi(); break;
+    case 'lgs-in': {
+      const u = document.getElementById('lgsU').value, pw = document.getElementById('lgsP').value; if (!u || !pw) { toast('Nhập tên đăng nhập và mật khẩu'); break; }
+      el.disabled = true; el.textContent = 'Đang đăng nhập…';
+      LGSync.login(u, pw).then(() => toast('Đã đăng nhập – đang đồng bộ')).catch(e => { LGSync.err = e.message; refreshSyncUi(); });
+      break;
+    }
     case 'm-q': case 'sc-q': case 'c-q': {
       Filt.q = +el.dataset.q; App.ctlN = 24;
       if (a === 'm-q' && G3.R) G3.fitCabs(Filt.q < 0 ? LG.cabs : LG.cabs.filter(c => c.q === Filt.q));
@@ -2555,6 +2782,17 @@ const G3 = {
   build() {
     const T = THREE, B = LG.base;
     this.L = {ward: this.lines(B.ward, 0.2), ranh: this.lines(B.ranh, 0.2), tim: this.lines(B.tim, 0.1), edge: this.lines(B.edge, 0.3), river: this.lines(B.river, 0.25)};
+    this.buildNet();
+  },
+  // Dựng lại lớp lưới điện khi LIGHTING-GIS đồng bộ vị trí trụ/tủ/cáp mới
+  rebuildNet() {
+    for (const k of ['cables', 'poles', 'glows', 'sticks', 'cabPts', 'cabBox', 'cutLines', 'flowPts', 'ring']) {
+      const o = this[k]; if (!o) continue; this.sc.remove(o); o.geometry && o.geometry.dispose(); o.material && o.material.dispose();
+    }
+    this.buildNet(); this.applyTheme(); this.flowAt = 0; this.dirty = true; this.tick();
+  },
+  buildNet() {
+    const T = THREE;
     // Cáp: mỗi đoạn 2 đỉnh, màu theo ngầm/nổi và trạng thái
     const m = LG.SA.length, pos = new Float32Array(m * 6), col = new Float32Array(m * 6);
     for (let k = 0; k < m; k++) { const a = LG.SA[k], b = LG.SB[k]; pos.set([LG.PX[a], 0.6, -LG.PY[a], LG.PX[b], 0.6, -LG.PY[b]], k * 6); }
@@ -2730,7 +2968,7 @@ const G3 = {
     // Chỉ tô lại khi trạng thái tủ/sự cố đổi
     if (time - (this.sigAt || 0) < 0.5 && this.lastStat) { /* chưa đến lúc kiểm tra */ } else {
     this.sigAt = time;
-    const sig = LG.cabs.length + '|' + this.night + '|' + App.incidents.length + '|' + Object.values(App.cabs).map(c => (c.online ? 1 : 0) + (c.tele ? (c.tele.do || []).join('') + (c.tele.di || []).join('') : '') + Object.keys(c.active).join(',') + JSON.stringify((c.active.CAT_CAP || {}).cand || '')).join(';');
+    const sig = LG.ver + '|' + LG.cabs.length + '|' + this.night + '|' + App.incidents.length + '|' + Object.values(App.cabs).map(c => (c.online ? 1 : 0) + (c.tele ? (c.tele.do || []).join('') + (c.tele.di || []).join('') : '') + Object.keys(c.active).join(',') + JSON.stringify((c.active.CAT_CAP || {}).cand || '')).join(';');
     if (sig !== this.lastStat) { this.lastStat = sig; this.recolor(); }
     }
     const pulse = 0.5 + 0.5 * Math.sin(time * 6);
@@ -2788,6 +3026,7 @@ const G3 = {
       g.save(); g.translate(x, y); if (rot) g.rotate(rot); g.lineWidth = 3; g.strokeStyle = P.halo; g.textAlign = 'center'; g.textBaseline = 'middle';
       g.strokeText(txt, 0, 0); g.fillStyle = fill; g.fillText(txt, 0, 0); g.restore();
     };
+    if (k < 0.6) this.drawLamps(g, proj, W, H, k);
     // Tủ có sự cố + tủ đang chọn luôn có nhãn
     const sel = this.sel;
     LG.cabs.forEach(c => {
@@ -2818,6 +3057,38 @@ const G3 = {
     }
     // Ghim đánh dấu của sự cố đang mở
     App.incidents.filter(x => x.status !== 'done' && x.mark && x.mark.pole !== undefined).forEach(x => { const s = proj(LG.PX[x.mark.pole], LG.PY[x.mark.pole]); if (s) { g.font = '20px system-ui'; g.textAlign = 'center'; g.fillText('📍', s[0], s[1] - 6); } });
+  },
+  // Cần đèn + bộ đèn theo hướng và loại đèn của LIGHTING-GIS (hiện khi phóng to)
+  drawLamps(g, proj, W, H, k) {
+    const c = this.cam, X = c.tx, Y = -c.tz, rr = c.r * (this.mode3d ? 1.4 : 0.8), G = 50, gx = Math.floor(X / G), gy = Math.floor(Y / G), kk = Math.min(40, Math.ceil(rr / G));
+    const arm = Math.max(9, Math.min(24, 2.4 / k)), dark = this.theme === 'dark', armC = dark ? '#c9d2cd' : '#4b5563';
+    const TC = {LED: '#7dd3fc', HPS: '#fb923c', MH: '#c4b5fd', TT: '#f472b6'}, A = [0, Math.PI, Math.PI / 2, -Math.PI / 2];
+    let n = 0;
+    for (let a = -kk; a <= kk; a++) for (let b = -kk; b <= kk; b++) for (const i of LG.grid.get((gx + a) + ':' + (gy + b)) || []) {
+      if (n > 1200) return;
+      const L = LG.LAMPS[i]; if (!L || !L.length) continue;
+      const x = LG.PX[i], y = LG.PY[i], s = proj(x, y); if (!s || s[0] < -30 || s[0] > W + 30 || s[1] < -30 || s[1] > H + 30) continue;
+      const se = proj(x + 1, y), sn = proj(x, y + 1); if (!se || !sn) continue;
+      const ex = se[0] - s[0], ey = se[1] - s[1], nx = sn[0] - s[0], ny = sn[1] - s[1];
+      const lit = this.litFn ? this.litFn(i) : false, glow = lit && this.night;
+      n++;
+      const deco = L.filter(l => l.t !== 'TT').length === 0;
+      if (deco) {
+        if (glow) { g.fillStyle = 'rgba(255,220,120,.35)'; g.beginPath(); g.arc(s[0], s[1], 8, 0, 7); g.fill(); }
+        g.fillStyle = TC.TT; g.strokeStyle = lit ? '#ffe9a6' : (dark ? '#111' : '#fff'); g.lineWidth = 1; g.beginPath(); g.arc(s[0], s[1], 4.5, 0, 7); g.fill(); g.stroke(); continue;
+      }
+      const base = LG.PA[i] * Math.PI / 180;
+      L.map((l, ix) => [l, ix]).filter(q => q[0].t !== 'TT').slice(0, 4).forEach(([l], m) => {
+        const an = base + (l.rel != null ? l.rel * Math.PI / 180 : A[m]);
+        let dx = ex * Math.cos(an) + nx * Math.sin(an), dy = ey * Math.cos(an) + ny * Math.sin(an); const len = Math.hypot(dx, dy) || 1; dx /= len; dy /= len;
+        const hx = s[0] + dx * arm, hy = s[1] + dy * arm;
+        g.strokeStyle = armC; g.lineWidth = 1.6; g.beginPath(); g.moveTo(s[0], s[1]); g.lineTo(hx, hy); g.stroke();
+        g.save(); g.translate(hx, hy); g.rotate(Math.atan2(dy, dx));
+        if (glow) { g.fillStyle = 'rgba(255,220,120,.38)'; g.beginPath(); g.arc(2, 0, 8, 0, 7); g.fill(); }
+        g.fillStyle = TC[l.t] || '#ddd'; g.strokeStyle = lit ? '#ffe9a6' : (dark ? '#0b0f0d' : '#fff'); g.lineWidth = 1;
+        g.beginPath(); g.ellipse(2, 0, 5.5, 3.2, 0, 0, 7); g.fill(); g.stroke(); g.restore();
+      });
+    }
   },
   // Lớp HTML phủ: chỉ số, thanh báo, thẻ thông tin – cập nhật mỗi giây
   tick() {
@@ -2854,11 +3125,13 @@ const G3 = {
         <div class="btns"><a class="btn sm pri" href="#/tu/${encodeURIComponent(cab.cfg.key)}/vao-ra">🎛️ Bảng tủ</a><button class="btn sm" data-act="sc-open" data-t="${s.t}">📟 SCADA</button>
           <a class="btn sm" target="_blank" rel="noopener" href="https://www.google.com/maps?q=${ll[0].toFixed(6)},${ll[1].toFixed(6)}">📍 Google Maps</a></div>`;
     } else {
-      const i = s.i, g = LG.byT[LG.PT[i]], p = LG.D.p[i], lit = this.litFn ? this.litFn(i) : false, cab = g ? gisCab(g.t) : null;
-      const demo = cab && cab.cfg.source === 'sim' && App.devices[g.id];
+      const i = s.i, g = LG.byT[LG.PT[i]], p = LG.P[i], lit = this.litFn ? this.litFn(i) : false, cab = g ? gisCab(g.t) : null;
+      const demo = cab && cab.cfg.source === 'sim' && App.devices[g.id], ls = LG.lampSummary(i);
+      const edTag = LG.PNEW[i] ? 'vẽ thêm' : (((LG.ED[LG.PT[i]] || {}).p || {})[LG.PID[i]] ? 'đã chỉnh' : '');
       box.innerHTML = `<div class="row"><b class="grow">Trụ ${esc(LG.poleName(i))}</b><button class="btn sm" data-act="m-unsel" aria-label="Đóng">✕</button></div>
         <div class="sub">Tủ ${esc(g ? g.id + ' · ' + g.name : '—')} · tuyến ${esc(LG.D.tuy[p[2]] || '—')} · ${esc(LG.street(i))}</div>
-        <div class="sub">${esc(LG.D.lt[p[6]] || '—')} · ${LG.PL[i]} đèn: ${esc(LG.PLT[i].join(', '))} · ≈ ${LG.PI[i].toFixed(2)} A</div>
+        <div class="sub">🏗️ ${esc(LG.D.lt[p[6]] || (LG.PNEW[i] ? 'Trụ vẽ thêm' : '—'))} · 🦾 Cần đèn: ${esc(ls.arms)} · hướng ${ls.ang}°</div>
+        <div class="sub">💡 Bộ đèn: ${esc(ls.lamps)} · ≈ ${LG.PI[i].toFixed(2)} A${edTag ? ` · <span style="color:#36c5f0">🔄 ${edTag} trên LIGHTING-GIS</span>` : ''}</div>
         <div class="sub">Cách tủ ≈ ${Math.round(LG.PD[i])} m theo cáp · nhánh phía sau ${LG.PSUB[i].toFixed(1)} A · ${lit ? '💡 sáng (ước tính)' : '⚫ không sáng / chưa rõ'}</div>
         <div class="btns"><button class="btn sm pri" data-act="m-mark" data-pole="${i}" data-kind="after">📍 Đứt cáp trước trụ này</button><button class="btn sm" data-act="m-mark" data-pole="${i}" data-kind="post">📍 Sự cố tại trụ</button>
           <a class="btn sm" target="_blank" rel="noopener" href="https://www.google.com/maps?q=${polesLatLon(i).map(v => (+v).toFixed(6)).join(',')}">📍 Maps</a></div>
@@ -2876,6 +3149,7 @@ function viewMap() {
     <div class="mov mkpi" id="mapKpi"></div>
     <div class="mov minfo" id="mapInfo" hidden></div>
     <div class="mov mbanner" id="mapBanner" hidden></div>
+    <div class="mov msync" id="mapSync">${syncBadge()}</div>
     <div class="mov msrc">Nền CAD & dữ liệu: LIGHTING-GIS · VN-2000</div>
   </div>`;
 }
@@ -3003,7 +3277,7 @@ document.addEventListener('focusin', e => { if (e.target.closest && e.target.clo
 /* ---------- Khởi động: tải LIGHTING-GIS rồi mới dựng tủ ---------- */
 function startGis() {
   LG.load(step => { LG.step = step; const e = document.getElementById('gisStep'); if (e) e.textContent = step; })
-    .then(() => { App.init(); render(true); })
+    .then(() => { App.init(); render(true); LGSync.start(); })
     .catch(e => { LG.err = e.message || String(e); render(true); });
 }
 updateHeader();
