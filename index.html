@@ -183,6 +183,7 @@ body.fullmap main{max-width:none;padding:0}
 .mtools{left:10px;top:56px;display:flex;gap:6px;flex-wrap:wrap;max-width:calc(100% - 20px)}
 .mtools button,.mtools a{background:rgba(10,16,24,.85);border:1px solid #24384b;color:#dbe9f5;border-radius:9px;padding:6px 10px;font-size:12.5px;font-weight:600;cursor:pointer}
 .mtools .on{border-color:#36c5f0;color:#36c5f0}
+.mtools .mtool{display:inline-flex}.mtools .mtool button:first-child{border-radius:9px 0 0 9px}.mtools .mtool button:last-child{border-radius:0 9px 9px 0;border-left:0}
 .mlayers{left:10px;top:100px;background:rgba(10,16,24,.94);border:1px solid #24384b;border-radius:12px;padding:10px;width:290px;max-width:calc(100% - 20px)}
 .mlayers .row{gap:6px;margin-bottom:8px}.mlayers button{background:#111b26;border:1px solid #24384b;color:#9fb3c6;border-radius:8px;padding:6px 8px;font-size:12px;font-weight:600;cursor:pointer}
 .mlayers .lgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.mlayers .lgrid button.on{border-color:#36c5f0;color:#e6f7fd;background:#0f2a38}
@@ -1875,6 +1876,7 @@ document.addEventListener('click', async e => {
     case 'sc-open': App.scSel = +el.dataset.t; location.hash = '#/scada'; break;
     case 'ctl-more': App.ctlN += 48; render(true); break;
     case 'm-flow': G3.setLayer('dong', !G3.flow); el.classList.toggle('on', G3.flow); { const b = document.querySelector('[data-act="m-layer"][data-val="dong"]'); if (b) b.classList.toggle('on', G3.flow); } break;
+    case 'm-tool': G3.setTool(el.dataset.val); break;
     case 'm-layers': { const p = document.getElementById('mLayers'); if (p) { p.hidden = !p.hidden; el.classList.toggle('on', !p.hidden); } break; }
     case 'm-layer': { const k = el.dataset.val, on = !G3.layer[k]; G3.setLayer(k, on); el.classList.toggle('on', on); if (k === 'dong') { const b = document.querySelector('[data-act="m-flow"]'); if (b) b.classList.toggle('on', on); } break; }
     case 'm-layer-all': { const on = el.dataset.val === '1'; G3.LAYERS.forEach(([k]) => G3.setLayer(k, on)); document.querySelectorAll('[data-act="m-layer"]').forEach(b => b.classList.toggle('on', on)); const f = document.querySelector('[data-act="m-flow"]'); if (f) f.classList.toggle('on', on); break; }
@@ -2742,7 +2744,7 @@ function qChips(act) {
 }
 
 const G3 = {
-  cam: {theta: 0, phi: 0.001, r: 9000, tx: 7000, tz: 0}, goal: null, pts: new Map(), sel: null, flow: true, mode3d: false,
+  cam: {theta: 0, phi: 0.001, r: 9000, tx: 7000, tz: 0}, goal: null, tool: store.get('gst3.mapTool', 'hand'), pts: new Map(), sel: null, flow: true, mode3d: false,
   theme: store.get('gst3.mapTheme', 'dark'),
   async mount(focus) {
     if (!document.getElementById('map3d')) return;
@@ -2762,7 +2764,7 @@ const G3 = {
     const T = THREE;
     this.R = new T.WebGLRenderer({antialias: true}); this.R.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
     const el = this.R.domElement; el.style.cssText = 'display:block;width:100%;height:100%;touch-action:none;position:absolute;inset:0;border-radius:0;background:transparent';
-    el.setAttribute('aria-label', 'Bản đồ nền CAD lưới chiếu sáng – kéo để di chuyển, chụm hai ngón để phóng to');
+    el.setAttribute('aria-label', 'Bản đồ nền CAD lưới chiếu sáng – giữ chuột trái hoặc chuột giữa rồi kéo để di chuyển, chuột phải để xoay, lăn chuột hoặc chụm hai ngón để phóng to');
     this.ov = document.createElement('canvas'); this.ov.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;background:transparent;border-radius:0';
     this.cam3 = new T.PerspectiveCamera(40, 1, 1, 120000);
     this.sc = new T.Scene();
@@ -3013,14 +3015,22 @@ const G3 = {
   bind() {
     const el = this.R.domElement;
     el.addEventListener('contextmenu', e => e.preventDefault());
-    el.addEventListener('pointerdown', e => { el.setPointerCapture(e.pointerId); this.pts.set(e.pointerId, {x: e.clientX, y: e.clientY, b: e.button, sh: e.shiftKey}); this.down = {x: e.clientX, y: e.clientY, t: Date.now()}; this.goal = null; });
+    // Chuột: trái = bàn tay kéo (hoặc xoay nếu chọn công cụ Xoay) · giữ chuột giữa = kéo · phải / Shift = xoay · lăn = phóng to
+    el.style.cursor = this.tool === 'rotate' ? 'move' : 'grab'; el.tabIndex = 0;
+    el.addEventListener('mousedown', e => { if (e.button === 1) e.preventDefault(); });        // chặn cuộn tự động của chuột giữa
+    el.addEventListener('pointerdown', e => {
+      if (e.button === 1) e.preventDefault();
+      el.setPointerCapture(e.pointerId); this.pts.set(e.pointerId, {x: e.clientX, y: e.clientY, b: e.button, sh: e.shiftKey}); this.down = {x: e.clientX, y: e.clientY, t: Date.now()}; this.goal = null;
+      const rot = e.button === 2 || e.shiftKey || (e.button === 0 && this.tool === 'rotate');
+      el.style.cursor = rot ? 'move' : 'grabbing';
+    });
     el.addEventListener('pointermove', e => {
       const p = this.pts.get(e.pointerId); if (!p) return;
       const dx = e.clientX - p.x, dy = e.clientY - p.y, c = this.cam;
       if (this.pts.size === 1) {
-        const rotate = this.mode3d ? !(p.b === 2 || p.sh) : (p.b === 2 || p.sh);
+        const rotate = p.b === 2 || p.sh || (p.b === 0 && this.tool === 'rotate');
         if (rotate) { c.theta -= dx * 0.006; if (this.mode3d) c.phi = Math.min(1.35, Math.max(0.15, c.phi - dy * 0.005)); }
-        else this.pan(dx, dy);
+        else this.grabPan(p.x, p.y, e.clientX, e.clientY);
       } else if (this.pts.size === 2) {
         const [a, b] = [...this.pts.values()], d0 = Math.hypot(a.x - b.x, a.y - b.y), m0 = [(a.x + b.x) / 2, (a.y + b.y) / 2];
         p.x = e.clientX; p.y = e.clientY;
@@ -3031,7 +3041,7 @@ const G3 = {
       p.x = e.clientX; p.y = e.clientY; this.dirty = true;
     });
     const up = e => {
-      this.pts.delete(e.pointerId);
+      this.pts.delete(e.pointerId); if (!this.pts.size) el.style.cursor = this.tool === 'rotate' ? 'move' : 'grab';
       if (this.down && e.type === 'pointerup' && Math.hypot(e.clientX - this.down.x, e.clientY - this.down.y) < 7 && Date.now() - this.down.t < 450) this.pick(e);
       this.down = null;
     };
@@ -3044,6 +3054,32 @@ const G3 = {
       this.dirty = true;
     }, {passive: false});
     el.addEventListener('dblclick', () => this.focusSel());
+    // Bàn phím (khi đã bấm vào bản đồ): mũi tên = kéo, + / − = phóng
+    el.addEventListener('keydown', e => {
+      const st = 80, c = this.cam, mv = {ArrowLeft: [st, 0], ArrowRight: [-st, 0], ArrowUp: [0, st], ArrowDown: [0, -st]}[e.key];
+      if (mv) { this.pan(mv[0], mv[1]); e.preventDefault(); }
+      else if (e.key === '+' || e.key === '=') c.r = Math.max(25, c.r * 0.8);
+      else if (e.key === '-' || e.key === '_') c.r = Math.min(40000, c.r * 1.25);
+      else return;
+      this.goal = null; this.dirty = true;
+    });
+  },
+  placeCam() {
+    const c = this.cam, ph = Math.max(0.001, c.phi);
+    this.cam3.position.set(c.tx + c.r * Math.sin(ph) * Math.sin(c.theta), c.r * Math.cos(ph), c.tz + c.r * Math.sin(ph) * Math.cos(c.theta));
+    if (ph < 0.01) this.cam3.up.set(Math.sin(c.theta), 0, -Math.cos(c.theta)); else this.cam3.up.set(0, 1, 0);
+    this.cam3.lookAt(c.tx, 0, c.tz); this.cam3.updateMatrixWorld();
+  },
+  // Kéo bản đồ kiểu "bàn tay nắm": điểm dưới con trỏ đi theo con trỏ (2D và 3D)
+  grabPan(x0, y0, x1, y1) {
+    const g0 = this.ground(x0, y0), g1 = this.ground(x1, y1);
+    if (g0 && g1 && Math.abs(g0.x - g1.x) + Math.abs(g0.z - g1.z) < this.cam.r * 4) { this.cam.tx += g0.x - g1.x; this.cam.tz += g0.z - g1.z; this.placeCam(); }
+    else this.pan(x1 - x0, y1 - y0);
+  },
+  setTool(t) {
+    this.tool = t; store.set('gst3.mapTool', t);
+    const el = this.R && this.R.domElement; if (el) el.style.cursor = t === 'rotate' ? 'move' : 'grab';
+    document.querySelectorAll('[data-act="m-tool"]').forEach(b => b.classList.toggle('on', b.dataset.val === t));
   },
   pan(dx, dy) { const c = this.cam, k = c.r * 0.0016 * (this.mode3d ? 1 : 1.1), fx = Math.sin(c.theta), fz = Math.cos(c.theta); c.tx += (-dx * fz - dy * fx) * k; c.tz += (dx * fx - dy * fz) * k; },
   ground(cx, cy) {
@@ -3096,10 +3132,7 @@ const G3 = {
     const time = ts / 1000, dt = Math.min(0.1, time - (this.lt || time)); this.lt = time;
     const c = this.cam;
     if (this.goal) { let done = true; for (const k in this.goal) { const d = this.goal[k] - c[k]; c[k] += d * 0.12; if (Math.abs(d) > (k === 'r' ? 0.5 : 0.002)) done = false; } if (done) this.goal = null; this.dirty = true; }
-    const ph = Math.max(0.001, c.phi);
-    this.cam3.position.set(c.tx + c.r * Math.sin(ph) * Math.sin(c.theta), c.r * Math.cos(ph), c.tz + c.r * Math.sin(ph) * Math.cos(c.theta));
-    if (ph < 0.01) this.cam3.up.set(Math.sin(c.theta), 0, -Math.cos(c.theta)); else this.cam3.up.set(0, 1, 0);
-    this.cam3.lookAt(c.tx, 0, c.tz);
+    this.placeCam();
     this.update(time, dt);
     this.R.render(this.sc, this.cam3);
     if (this.dirty || time - (this.lastOv || 0) > 0.5) { this.dirty = false; this.lastOv = time; this.drawOverlay(); }
@@ -3294,7 +3327,8 @@ function viewMap() {
     <div class="mov mtools">${qChips('m-q')}
       <button data-act="m-fit">🎯 Toàn cảnh</button><button data-act="m-3d" class="${G3.mode3d ? 'on' : ''}">${G3.mode3d ? '🗺️ 2D' : '🧊 3D'}</button>
       <button data-act="m-flow" class="${G3.flow ? 'on' : ''}">⚡ Dòng</button><button data-act="m-theme">${G3.theme === 'dark' ? '☀️ Nền sáng' : '🌙 Nền tối'}</button>
-      <button data-act="m-layers">🗂️ Lớp</button></div>
+      <button data-act="m-layers">🗂️ Lớp</button>
+      <span class="mtool"><button data-act="m-tool" data-val="hand" class="${G3.tool !== 'rotate' ? 'on' : ''}" title="Bàn tay: giữ chuột trái (hoặc chuột giữa) rồi kéo để di chuyển bản đồ">✋ Kéo</button><button data-act="m-tool" data-val="rotate" class="${G3.tool === 'rotate' ? 'on' : ''}" title="Xoay: giữ chuột trái rồi kéo để xoay / nghiêng (3D)">🔄 Xoay</button></span></div>
     <div class="mov mlayers" id="mLayers" hidden><div class="row"><b class="grow">Lớp bản đồ</b><button data-act="m-layer-all" data-val="1">Bật hết</button><button data-act="m-layer-all" data-val="0">Tắt hết</button></div>
       <div class="lgrid">${G3.LAYERS.map(([k, nm]) => `<button data-act="m-layer" data-val="${k}" class="${G3.layer[k] ? 'on' : ''}">${nm}</button>`).join('')}</div>
       <p>Cần + bộ đèn: phóng to để thấy; ở chế độ 3D hiện mô hình trụ, cần và bộ đèn.</p></div>
