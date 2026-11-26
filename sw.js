@@ -1,6 +1,6 @@
 // Service worker: lưu sẵn giao diện để mở app nhanh, kể cả khi mạng yếu.
 // Số liệu tủ luôn lấy trực tiếp qua MQTT, không lưu cache.
-const CACHE = 'tu-cs-v11';
+const CACHE = 'tu-cs-v12';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png', './vendor/three.min.js', './ban-do-chieu-sang.html'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => {

@@ -183,7 +183,6 @@ body.fullmap main{max-width:none;padding:0}
 .mtools{left:10px;top:56px;display:flex;gap:6px;flex-wrap:wrap;max-width:calc(100% - 20px)}
 .mtools button,.mtools a{background:rgba(10,16,24,.85);border:1px solid #24384b;color:#dbe9f5;border-radius:9px;padding:6px 10px;font-size:12.5px;font-weight:600;cursor:pointer}
 .mtools .on{border-color:#36c5f0;color:#36c5f0}
-.mtools .mtool{display:inline-flex}.mtools .mtool button:first-child{border-radius:9px 0 0 9px}.mtools .mtool button:last-child{border-radius:0 9px 9px 0;border-left:0}
 .mlayers{left:10px;top:100px;background:rgba(10,16,24,.94);border:1px solid #24384b;border-radius:12px;padding:10px;width:290px;max-width:calc(100% - 20px)}
 .mlayers .row{gap:6px;margin-bottom:8px}.mlayers button{background:#111b26;border:1px solid #24384b;color:#9fb3c6;border-radius:8px;padding:6px 8px;font-size:12px;font-weight:600;cursor:pointer}
 .mlayers .lgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.mlayers .lgrid button.on{border-color:#36c5f0;color:#e6f7fd;background:#0f2a38}
@@ -193,8 +192,8 @@ body.fullmap main{max-width:none;padding:0}
 .qchips button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:4px 10px;font-size:12.5px;font-weight:700;cursor:pointer;border-left:4px solid var(--qc,var(--line))}
 .qchips button small{font-weight:500;color:var(--muted);margin-left:4px}
 .qchips button.on{background:var(--ink);color:var(--bg)}.qchips button.on small{color:inherit}
-.qchips button.off{opacity:.55;text-decoration:line-through}
 .mtools .qchips button{background:rgba(10,16,24,.85);border-color:#24384b;color:#dbe9f5}.mtools .qchips button.on{background:#dbe9f5;color:#0b1219}
+.qchips button.on[data-q]:not([data-q="-1"]){background:var(--qc);border-color:var(--qc);color:#fff;box-shadow:0 0 0 2px color-mix(in srgb,var(--qc) 35%,transparent)}.qchips button.on[data-q]:not([data-q="-1"]) small{color:#fff;opacity:.85}
 .msearch{left:10px;top:10px;width:min(330px,calc(100% - 20px))}
 .msearch input{width:100%;background:rgba(10,16,24,.9);border:1px solid #2c4256;color:#e6f2fb;border-radius:10px;padding:8px 11px;font-size:14px}
 #mapRes{margin-top:4px;background:rgba(12,19,27,.96);border-radius:10px;overflow:hidden;max-height:50vh;overflow-y:auto}
@@ -1876,7 +1875,7 @@ document.addEventListener('click', async e => {
     case 'sc-open': App.scSel = +el.dataset.t; location.hash = '#/scada'; break;
     case 'ctl-more': App.ctlN += 48; render(true); break;
     case 'm-flow': G3.setLayer('dong', !G3.flow); el.classList.toggle('on', G3.flow); { const b = document.querySelector('[data-act="m-layer"][data-val="dong"]'); if (b) b.classList.toggle('on', G3.flow); } break;
-    case 'm-tool': G3.setTool(el.dataset.val); break;
+    case 'm-tool': G3.setTool(G3.tool === 'rotate' ? 'hand' : 'rotate'); break;
     case 'm-layers': { const p = document.getElementById('mLayers'); if (p) { p.hidden = !p.hidden; el.classList.toggle('on', !p.hidden); } break; }
     case 'm-layer': { const k = el.dataset.val, on = !G3.layer[k]; G3.setLayer(k, on); el.classList.toggle('on', on); if (k === 'dong') { const b = document.querySelector('[data-act="m-flow"]'); if (b) b.classList.toggle('on', on); } break; }
     case 'm-layer-all': { const on = el.dataset.val === '1'; G3.LAYERS.forEach(([k]) => G3.setLayer(k, on)); document.querySelectorAll('[data-act="m-layer"]').forEach(b => b.classList.toggle('on', on)); const f = document.querySelector('[data-act="m-flow"]'); if (f) f.classList.toggle('on', on); break; }
@@ -3079,7 +3078,7 @@ const G3 = {
   setTool(t) {
     this.tool = t; store.set('gst3.mapTool', t);
     const el = this.R && this.R.domElement; if (el) el.style.cursor = t === 'rotate' ? 'move' : 'grab';
-    document.querySelectorAll('[data-act="m-tool"]').forEach(b => b.classList.toggle('on', b.dataset.val === t));
+    document.querySelectorAll('[data-act="m-tool"]').forEach(b => { b.textContent = t === 'rotate' ? '🔄 Xoay' : '✋ Kéo'; });
   },
   pan(dx, dy) { const c = this.cam, k = c.r * 0.0016 * (this.mode3d ? 1 : 1.1), fx = Math.sin(c.theta), fz = Math.cos(c.theta); c.tx += (-dx * fz - dy * fx) * k; c.tz += (dx * fx - dy * fz) * k; },
   ground(cx, cy) {
@@ -3328,7 +3327,7 @@ function viewMap() {
       <button data-act="m-fit">🎯 Toàn cảnh</button><button data-act="m-3d" class="${G3.mode3d ? 'on' : ''}">${G3.mode3d ? '🗺️ 2D' : '🧊 3D'}</button>
       <button data-act="m-flow" class="${G3.flow ? 'on' : ''}">⚡ Dòng</button><button data-act="m-theme">${G3.theme === 'dark' ? '☀️ Nền sáng' : '🌙 Nền tối'}</button>
       <button data-act="m-layers">🗂️ Lớp</button>
-      <span class="mtool"><button data-act="m-tool" data-val="hand" class="${G3.tool !== 'rotate' ? 'on' : ''}" title="Bàn tay: giữ chuột trái (hoặc chuột giữa) rồi kéo để di chuyển bản đồ">✋ Kéo</button><button data-act="m-tool" data-val="rotate" class="${G3.tool === 'rotate' ? 'on' : ''}" title="Xoay: giữ chuột trái rồi kéo để xoay / nghiêng (3D)">🔄 Xoay</button></span></div>
+      <button data-act="m-tool" class="on" title="Bấm để đổi việc của chuột trái / một ngón tay: Kéo ⇄ Xoay. Chuột giữa luôn kéo, chuột phải luôn xoay.">${G3.tool === 'rotate' ? '🔄 Xoay' : '✋ Kéo'}</button></div>
     <div class="mov mlayers" id="mLayers" hidden><div class="row"><b class="grow">Lớp bản đồ</b><button data-act="m-layer-all" data-val="1">Bật hết</button><button data-act="m-layer-all" data-val="0">Tắt hết</button></div>
       <div class="lgrid">${G3.LAYERS.map(([k, nm]) => `<button data-act="m-layer" data-val="${k}" class="${G3.layer[k] ? 'on' : ''}">${nm}</button>`).join('')}</div>
       <p>Cần + bộ đèn: phóng to để thấy; ở chế độ 3D hiện mô hình trụ, cần và bộ đèn.</p></div>
