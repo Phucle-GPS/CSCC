@@ -110,7 +110,7 @@ Firmware hiện đo tổng 3 pha của cả tủ. Để phần mềm chỉ ra **
 
 | Trường | Ví dụ | Ý nghĩa |
 |---|---|---|
-| `r` | `{"R1":[2.04,1.36,1.36],"R2":[1.35,1.35,0.68]}` | Dòng 3 pha (A) của từng tuyến, mã tuyến trùng khối `NET` trong app |
+| `r` | `{"R1":[2.04,1.36,1.36],"R2":[1.35,1.35,0.68]}` | Dòng 3 pha (A) của từng tuyến, mã tuyến trùng tên tuyến trong LIGHTING-GIS |
 | `rcb` | `{"R1":1,"R2":0}` | Trạng thái CB nhánh từng tuyến (tiếp điểm phụ OF), 0 = cắt/nhảy |
 
 Cảnh báo theo tuyến dùng `phase` = mã tuyến (`"R1"`) và thêm `est` (số cột còn sáng tính từ tủ):

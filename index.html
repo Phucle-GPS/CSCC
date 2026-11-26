@@ -178,11 +178,28 @@ body.fullmap main{max-width:none;padding:0}
 @media (min-width:900px){.mapwrap{height:calc(100vh - 57px);height:calc(100dvh - 57px)}}
 #map3d{position:absolute;inset:0}
 .mov{position:absolute;z-index:5;color:#dbe9f5;font-size:13px}
-.mlegend{left:10px;top:10px;background:rgba(10,16,24,.8);border:1px solid #24384b;border-radius:10px;padding:6px 10px;font-size:11.5px;white-space:nowrap}
+.mlegend{display:none;left:10px;top:10px;background:rgba(10,16,24,.8);border:1px solid #24384b;border-radius:10px;padding:6px 10px;font-size:11.5px;white-space:nowrap}
 .mlegend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin:0 4px 0 9px;vertical-align:-1px}.mlegend i:first-child{margin-left:0}
-.mtools{left:10px;top:48px;display:flex;gap:6px;flex-wrap:wrap}
+.mtools{left:10px;top:56px;display:flex;gap:6px;flex-wrap:wrap;max-width:calc(100% - 20px)}
 .mtools button,.mtools a{background:rgba(10,16,24,.85);border:1px solid #24384b;color:#dbe9f5;border-radius:9px;padding:6px 10px;font-size:12.5px;font-weight:600;cursor:pointer}
 .mtools .on{border-color:#36c5f0;color:#36c5f0}
+.qchips{display:flex;gap:4px;flex-wrap:wrap}
+.qchips button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:4px 10px;font-size:12.5px;font-weight:700;cursor:pointer;border-left:4px solid var(--qc,var(--line))}
+.qchips button small{font-weight:500;color:var(--muted);margin-left:4px}
+.qchips button.on{background:var(--ink);color:var(--bg)}.qchips button.on small{color:inherit}
+.mtools .qchips button{background:rgba(10,16,24,.85);border-color:#24384b;color:#dbe9f5}.mtools .qchips button.on{background:#dbe9f5;color:#0b1219}
+.msearch{left:10px;top:10px;width:min(330px,calc(100% - 20px))}
+.msearch input{width:100%;background:rgba(10,16,24,.9);border:1px solid #2c4256;color:#e6f2fb;border-radius:10px;padding:8px 11px;font-size:14px}
+#mapRes{margin-top:4px;background:rgba(12,19,27,.96);border-radius:10px;overflow:hidden;max-height:50vh;overflow-y:auto}
+#mapRes:empty{display:none}
+#mapRes button{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid #24384b;background:transparent;color:#dbe9f5;padding:7px 10px;cursor:pointer;font-size:13px}
+#mapRes button small{display:block;color:#8aa2b8;font-size:11.5px}
+.msrc{right:10px;bottom:10px;font-size:10.5px;color:#8aa2b8;background:rgba(10,16,24,.6);padding:2px 7px;border-radius:6px;pointer-events:none}
+@media (max-width:760px){.msrc{display:none}}
+.tiles{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0 12px;max-height:240px;overflow:auto;padding:2px}
+.tile{border:0;border-left:4px solid var(--qc);border-radius:6px;padding:4px 7px;font:600 11.5px ui-monospace,Menlo,monospace;cursor:pointer;background:#e6f6ec;color:#16653a}
+.tile.s-bad{background:#fdeaea;color:#b42323;animation:blinkA 1s steps(2,start) infinite}.tile.s-warn{background:#fff4dc;color:#8a5a00}.tile.s-off,.tile.s-none{background:#eef1f4;color:#6b7785}
+.tile.sel{outline:3px solid var(--accent);outline-offset:1px;animation:none}
 .mkpi{right:10px;top:10px;display:grid;grid-template-columns:repeat(4,auto);gap:6px}
 .mkpi>*{background:rgba(10,16,24,.85);border:1px solid #24384b;border-radius:10px;padding:5px 10px;color:#dbe9f5;text-decoration:none}
 .mkpi span{display:block;font-size:10.5px;color:#8aa2b8}.mkpi b{font-size:16px;font-variant-numeric:tabular-nums}
@@ -211,7 +228,7 @@ body.fullmap main{max-width:none;padding:0}
 
 <header>
   <div class="hwrap">
-    <div class="brand">Giám sát chiếu sáng<small id="hsub">Bản đồ 3D · SCADA · Điều khiển</small></div>
+    <div class="brand">Giám sát chiếu sáng<small id="hsub">Bản đồ CAD · SCADA · Điều khiển</small></div>
     <div class="hchip" id="clockChip" title="Giờ mô phỏng"><span id="dayIcon">🌙</span><span id="simTime">--:--</span></div>
     <button class="hchip" id="installBtn" hidden title="Cài app lên máy">📲<span class="hide-s"> Cài app</span></button>
     <a class="hchip" id="fbChip" href="#" target="_blank" rel="noopener" title="Gửi góp ý / báo lỗi">💬<span class="hide-s"> Góp ý</span></a>
@@ -220,7 +237,7 @@ body.fullmap main{max-width:none;padding:0}
 </header>
 
 <nav class="nav" id="nav">
-  <a href="#/ban-do" data-r="ban-do"><b>🗺️</b>Bản đồ 3D</a>
+  <a href="#/ban-do" data-r="ban-do"><b>🗺️</b>Bản đồ</a>
   <a href="#/scada" data-r="scada"><b>📟</b>SCADA</a>
   <a href="#/dieu-khien" data-r="dieu-khien"><b>🎛️</b>Điều khiển</a>
   <a href="#/canh-bao" data-r="canh-bao"><b>🚨</b>Cảnh báo<span class="badge" id="incBadge" hidden>0</span></a>
@@ -245,7 +262,8 @@ const CFG = {
   COLLISION_COOLDOWN_TICKS: 60,
   TELE_EVERY: 5,              // firmware: 10 s
   LWT_AFTER: 15, OFFLINE_AFTER_S: 30, CMD_TIMEOUT_MS: 10000, PIN_UNLOCK_MS: 5 * 60000,
-  HIST: 120
+  HIST: 120,
+  GIS_TELE_EVERY: 10          // tủ Demo theo GIS gửi số liệu mỗi 10 s (874 tủ)
 };
 const N_DO = 4;
 const DI = {DOOR: 0, CB: 1, FB1: 2, FB2: 3, SPD: 4, AUTO: 5};
@@ -290,53 +308,194 @@ const ACK_MSG = {'OK': 'Đã thực hiện', 'Tu dang o che do Tay tai cho': 'T�
 const STATUS = {new: 'Mới', assigned: 'Đã giao', doing: 'Đang xử lý', done: 'Hoàn thành'};
 
 /* =====================================================================
-   DỮ LIỆU MẠNG CHIẾU SÁNG (dùng chung cho Bản đồ 3D, SCADA, Điều khiển)
-   Sửa khối này theo bản vẽ tuyến thật: vị trí TBA, tủ, đường, số cột.
-   Toạ độ: 1 đơn vị = 3,3 m. Mã tủ trùng với CABINET_ID trong firmware.
+   DỮ LIỆU LIGHTING-GIS – bản đồ nền CAD (VN-2000), tủ, trụ, đèn, cáp.
+   Đọc trực tiếp từ app LIGHTING-GIS (cùng tên miền phucle-gps.github.io),
+   dự phòng qua raw.githubusercontent.com. Không chép dữ liệu sang CSCC.
+   Toạ độ: mét, gốc (X0, Y0) VN-2000 của LIGHTING-GIS.
    ===================================================================== */
-const M_PER_UNIT = 3.3, LAMP_A = 0.68;            // đèn LED 150 W ≈ 0,68 A
-const ROADS = [
-  {name: 'Đại lộ A', a: [-36, 0], b: [36, 0]},
-  {name: 'Đường B', a: [-36, -18], b: [36, -18]},
-  {name: 'Đường 1', a: [-20, -30], b: [-20, 14]},
-  {name: 'Đường 2', a: [4, -30], b: [4, 14]},
-  {name: 'Đường 3', a: [24, -30], b: [24, 14]}
-];
-const NET = {
-  tba: {id: 'TBA', name: 'TBA Khu A 22/0,4 kV – 250 kVA', pos: [-29, 8]},
-  cabs: [
-    {id: 'TU-01', name: 'Ngã tư Đại lộ A – Đường 1', area: 'Khu vực 1', team: 'Tổ 1', pos: [-23, 3.6], feeder: [[-28, 6.4], [-28, 4.6], [-23, 4.6]],
-      routes: [
-        {id: 'R1', ch: 0, name: 'Đại lộ A (đoạn Tây)', path: [[-21.6, 2.2], [2.4, 2.2]], n: 7},
-        {id: 'R2', ch: 1, name: 'Đường 1', path: [[-17.8, -1.2], [-17.8, -16.8]], n: 5}]},
-    {id: 'TU-02', name: 'Ngã tư Đại lộ A – Đường 2', area: 'Khu vực 2', team: 'Tổ 2', pos: [7.4, 3.6], feeder: [[-28, 6.4], [-28, 5.2], [7.4, 5.2]],
-      routes: [
-        {id: 'R3', ch: 0, name: 'Đại lộ A (đoạn Đông)', path: [[8.8, 2.2], [34, 2.2]], n: 7},
-        {id: 'R4', ch: 1, name: 'Đường 2', path: [[6.2, -1.2], [6.2, -16.8]], n: 5}]},
-    {id: 'TU-03', name: 'Ngã tư Đường B – Đường 3', area: 'Khu vực 3', team: 'Tổ 3', pos: [21.6, -21.4], feeder: [[-28, 6.4], [-31, 6.4], [-31, -22.6], [21.6, -22.6]],
-      routes: [
-        {id: 'R5', ch: 0, name: 'Đường B', path: [[20.4, -20.2], [-34, -20.2]], n: 13},
-        {id: 'R6', ch: 1, name: 'Đường 3', path: [[25.8, -16.8], [25.8, -1.2]], n: 5}]}
-  ]
-};
-const ROUTES = {}, NET_CAB = {};
-NET.cabs.forEach(c => { NET_CAB[c.id] = c; c.routes.forEach(r => { r.cab = c.id; ROUTES[r.id] = r; }); });
-function polyLen(p) { let L = 0; for (let i = 1; i < p.length; i++) L += Math.hypot(p[i][0] - p[i - 1][0], p[i][1] - p[i - 1][1]); return L; }
-function polyAt(p, d) {
-  for (let i = 1; i < p.length; i++) {
-    const s = Math.hypot(p[i][0] - p[i - 1][0], p[i][1] - p[i - 1][1]);
-    if (d <= s || i === p.length - 1) { const t = Math.min(1, d / s); return [p[i - 1][0] + (p[i][0] - p[i - 1][0]) * t, p[i - 1][1] + (p[i][1] - p[i - 1][1]) * t]; }
-    d -= s;
+const LG = {
+  SRC: ['../LIGHTING-GIS/', 'https://raw.githubusercontent.com/Phucle-GPS/LIGHTING-GIS/main/'],
+  QNAME: ['Quận 1', 'Quận 3', 'Bình Thạnh', 'Phú Nhuận'], QSHORT: ['Q1', 'Q3', 'BT', 'PN'],
+  QC: ['#e2632f', '#7a5cf0', '#13a37c', '#d39a0b'],          // màu quận theo LIGHTING-GIS
+  ready: false, err: null, src: null,
+  async fetchText(name) {
+    let lastErr = null;
+    for (const base of this.SRC) {
+      try {
+        const r = await fetch(base + name);
+        if (!r.ok) { lastErr = new Error(r.status + ' ' + name); continue; }
+        const u = new Uint8Array(await r.arrayBuffer());
+        this.src = base;
+        if (u[0] === 0x1f && u[1] === 0x8b) {
+          if (!('DecompressionStream' in window)) throw new Error('Trình duyệt chưa hỗ trợ giải nén (cần Chrome/Edge/Safari bản mới)');
+          return await new Response(new Blob([u]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+        }
+        return new TextDecoder().decode(u);
+      } catch (e) { lastErr = e; }
+    }
+    throw lastErr || new Error('Không tải được ' + name);
+  },
+  async load(onStep) {
+    onStep && onStep('Đang tải dữ liệu trụ, cáp, tủ từ LIGHTING-GIS…');
+    const pk = await this.fetchText('pack.gz');
+    const nl = pk.indexOf('\n'), idx = JSON.parse(pk.slice(0, nl)), parts = {};
+    let o = nl + 1; for (const [k, l] of idx) { parts[k] = pk.substr(o, l); o += l; }
+    this.build(parts);
+    onStep && onStep('Đang tải bản đồ nền CAD…');
+    let b;
+    try { b = JSON.parse(await this.fetchText('base.gz')); } catch (e) { b = JSON.parse(await this.fetchText('base.json')); }
+    this.buildBase(b);
+    this.ready = true;
+  },
+  // ---------- Mạng điện: tủ → cây cáp → trụ → đèn ----------
+  build(parts) {
+    const D = JSON.parse(parts.data), CAB = JSON.parse(parts.cab), LM = JSON.parse(parts.lamps), DIST = JSON.parse(parts.dist);
+    for (const n of CAB.add || []) D.tu.push(n);
+    this.D = D; this.X0 = D.X0; this.Y0 = D.Y0;
+    const n = D.p.length;
+    this.n = n;
+    this.PX = new Float32Array(n); this.PY = new Float32Array(n); this.PT = new Int32Array(n);
+    this.PI = new Float32Array(n); this.PL = new Uint8Array(n);       // dòng đèn (A), số bóng
+    this.PN = []; this.PLT = [];                                       // tên trụ, mô tả đèn
+    const W = LM.W || [], typeName = {M: 'MH', H: 'HPS', L: 'LED', T: 'Trang trí'};
+    const dflW = {M: 150, H: 150, L: 100, T: 60};
+    for (let i = 0; i < n; i++) {
+      const p = D.p[i], sn = p[14];
+      this.PX[i] = p[3] + (sn ? sn[0] : 0); this.PY[i] = p[4] + (sn ? sn[1] : 0);
+      this.PT[i] = p[1]; this.PN[i] = p[0];
+      const lm = LM.p[i];
+      let I = 0, cnt = 0, txt = [];
+      if (lm) {
+        const ty = [...lm[0]], wi = lm[1] || [];
+        ty.forEach((c, k) => {
+          const ws = W[wi[k]] || '', m = /(\d+)\s*W/i.exec(ws), w = m ? +m[1] : (dflW[c] || 100);
+          const led = c === 'L';
+          I += w * (led ? 1 : 1.12) / (230 * (led ? 0.95 : 0.9));      // bóng phóng điện có tổn hao chấn lưu
+          cnt++; txt.push(ws || `${typeName[c] || 'Đèn'} ~${w}W`);
+        });
+      } else { I = 100 / (230 * 0.95); cnt = 1; txt.push('Chưa có dữ liệu đèn (coi như LED 100W)'); }
+      this.PI[i] = I; this.PL[i] = cnt; this.PLT[i] = txt;
+    }
+    const S = D.s, m = S.length;
+    this.SA = new Int32Array(m); this.SB = new Int32Array(m); this.ST = new Uint8Array(m); this.SL = new Float32Array(m);
+    for (let k = 0; k < m; k++) { this.SA[k] = S[k][0]; this.SB[k] = S[k][1]; this.ST[k] = S[k][2]; this.SL[k] = S[k][3]; }
+    // Tủ: chỉ lấy tủ có toạ độ
+    const used = new Map(); this.cabs = []; this.byT = {}; this.byId = {};
+    const raw = CAB.c;
+    for (let t = 0; t < D.tu.length; t++) {
+      const c = raw[t]; if (!c) continue;
+      let id = (c[10] || '').trim();
+      if (!id || used.has(id)) id = 'TU' + t;
+      used.set(id, t);
+      const q = DIST.q[t] ?? 2;
+      const cab = {t, id, name: D.tu[t], x: c[0], y: c[1], q, ward: c[6] || '', addr: c[4] || '', mgr: c[3] || '', pe: c[2] || '',
+        kntt: !!c[8], comm: c[9] || '', nlamp: c[5] || 0, mix: c[14] || {}, cNoi: c[11] || 0, cNgam: c[12] || 0, poles: [], exp: 0};
+      this.cabs.push(cab); this.byT[t] = cab; this.byId[id] = cab;
+      if (c[2]) this.byId[c[2]] = cab;
+    }
+    for (let i = 0; i < n; i++) { const cab = this.byT[this.PT[i]]; if (cab) cab.poles.push(i); }
+    this.buildTrees();
+    // Lưới tra nhanh trụ và tủ theo ô 50 m (chọn trên bản đồ)
+    this.grid = new Map(); const G = 50;
+    const put = (key, v) => { let a = this.grid.get(key); if (!a) this.grid.set(key, a = []); a.push(v); };
+    for (let i = 0; i < n; i++) put(Math.floor(this.PX[i] / G) + ':' + Math.floor(this.PY[i] / G), i);
+    this.cgrid = new Map();
+    this.cabs.forEach((c, ci) => { const k = Math.floor(c.x / G) + ':' + Math.floor(c.y / G); let a = this.cgrid.get(k); if (!a) this.cgrid.set(k, a = []); a.push(ci); });
+    this.bbox = (() => { let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; this.cabs.forEach(c => { x0 = Math.min(x0, c.x); x1 = Math.max(x1, c.x); y0 = Math.min(y0, c.y); y1 = Math.max(y1, c.y); }); return [x0, y0, x1, y1]; })();
+  },
+  // Dựng cây cáp của từng tủ: gốc = trụ gần tủ nhất; nhánh rời được nối giả định vào trụ gần nhất
+  buildTrees() {
+    const n = this.n;
+    this.PP = new Int32Array(n).fill(-1);      // trụ cha (phía tủ)
+    this.PSEG = new Int32Array(n).fill(-1);    // đoạn cáp nối từ cha
+    this.PD = new Float32Array(n);             // khoảng cách theo cáp từ tủ (m)
+    this.PSUB = new Float32Array(n);           // dòng của cả nhánh phía sau trụ (kể cả trụ) (A)
+    const adj = new Map(), A = (i, j, k) => { let a = adj.get(i); if (!a) adj.set(i, a = []); a.push([j, k]); };
+    for (let k = 0; k < this.SA.length; k++) { A(this.SA[k], this.SB[k], k); A(this.SB[k], this.SA[k], k); }
+    for (const cab of this.cabs) {
+      const ids = cab.poles;
+      if (!ids.length) { cab.root = -1; cab.order = new Int32Array(0); cab.exp = 0; cab.avgI = 0.47; cab.len = 0; cab.routes = []; continue; }
+      const inCab = new Set(ids), seen = new Set(), order = [];
+      let root = ids[0], best = 1e18;
+      for (const i of ids) { const d = (this.PX[i] - cab.x) ** 2 + (this.PY[i] - cab.y) ** 2; if (d < best) { best = d; root = i; } }
+      this.PD[root] = Math.sqrt(best);
+      const bfs = start => {
+        const q = [start]; seen.add(start);
+        while (q.length) {
+          const u = q.shift(); order.push(u);
+          for (const [v, k] of adj.get(u) || []) {
+            if (seen.has(v) || !inCab.has(v)) continue;
+            seen.add(v); this.PP[v] = u; this.PSEG[v] = k; this.PD[v] = this.PD[u] + (this.SL[k] || Math.hypot(this.PX[v] - this.PX[u], this.PY[v] - this.PY[u])); q.push(v);
+          }
+        }
+      };
+      bfs(root);
+      while (seen.size < ids.length) {                          // nhánh chưa nối: gắn vào trụ đã nối gần nhất
+        let bi = -1, bj = -1, bd = 1e18;
+        for (const i of ids) { if (seen.has(i)) continue; for (const j of order) { const d = (this.PX[i] - this.PX[j]) ** 2 + (this.PY[i] - this.PY[j]) ** 2; if (d < bd) { bd = d; bi = i; bj = j; } } }
+        this.PP[bi] = bj; this.PSEG[bi] = -1; this.PD[bi] = this.PD[bj] + Math.sqrt(bd); bfs(bi);
+      }
+      cab.root = root; cab.order = Int32Array.from(order);
+      for (let k = order.length - 1; k >= 0; k--) { const i = order[k]; this.PSUB[i] += this.PI[i]; if (this.PP[i] >= 0) this.PSUB[this.PP[i]] += this.PSUB[i]; }
+      cab.exp = this.PSUB[root];
+      cab.avgI = cab.exp / Math.max(1, ids.reduce((s, i) => s + this.PL[i], 0));
+      cab.len = Math.max(...ids.map(i => this.PD[i]));
+      // Nhánh (tuyến) theo LIGHTING-GIS
+      const tr = new Map();
+      for (const i of order) { const k = this.D.p[i][2]; if (!tr.has(k)) tr.set(k, []); tr.get(k).push(i); }
+      cab.routes = [...tr.entries()].map(([k, ps]) => ({k, name: this.D.tuy[k] || 'Tuyến', poles: ps}));
+    }
+  },
+  // Tìm đoạn cáp có "dòng phía sau" khớp với lượng dòng bị mất
+  locate(cab, lostA) {
+    if (!cab || !cab.order) return [];
+    const tol = Math.max(0.6 * cab.avgI, 0.05 * lostA), out = [];
+    for (const i of cab.order) { const d = Math.abs(this.PSUB[i] - lostA); if (d <= tol) out.push({i, d}); }
+    out.sort((a, b) => a.d - b.d || this.PD[a.i] - this.PD[b.i]);
+    return out.slice(0, 6).map(o => o.i);
+  },
+  poleName(i) { return this.PN[i] || ('Trụ ' + i); },
+  street(i) { return this.D.duong[this.D.p[i][7]] || ''; },
+  where(i) {
+    const p = this.PP[i], cab = this.byT[this.PT[i]];
+    return `${p >= 0 ? `giữa trụ ${this.poleName(p)} và ${this.poleName(i)}` : `giữa tủ và trụ ${this.poleName(i)}`}${this.street(i) ? ' – ' + this.street(i) : ''} (≈ ${Math.round(this.PD[i])} m theo cáp từ ${cab ? cab.id : 'tủ'})`;
+  },
+  nearPole(x, y, r) {
+    const G = 50, gx = Math.floor(x / G), gy = Math.floor(y / G), k = Math.ceil(r / G);
+    let best = -1, bd = r * r;
+    for (let a = -k; a <= k; a++) for (let b = -k; b <= k; b++) for (const i of this.grid.get((gx + a) + ':' + (gy + b)) || []) { const d = (this.PX[i] - x) ** 2 + (this.PY[i] - y) ** 2; if (d < bd) { bd = d; best = i; } }
+    return best;
+  },
+  nearCab(x, y, r) {
+    const G = 50, gx = Math.floor(x / G), gy = Math.floor(y / G), k = Math.ceil(r / G);
+    let best = null, bd = r * r;
+    for (let a = -k; a <= k; a++) for (let b = -k; b <= k; b++) for (const ci of this.cgrid.get((gx + a) + ':' + (gy + b)) || []) { const c = this.cabs[ci], d = (c.x - x) ** 2 + (c.y - y) ** 2; if (d < bd) { bd = d; best = c; } }
+    return best;
+  },
+  // ---------- Bản đồ nền CAD ----------
+  buildBase(b) {
+    const dec = arr => arr.map(e => { const p = new Float32Array(e.length); let x = 0, y = 0; for (let q = 0; q < e.length; q += 2) { x += e[q]; y += e[q + 1]; p[q] = x / 10; p[q + 1] = y / 10; } return p; });
+    this.base = {edge: dec(b.edge), tim: dec(b.tim), river: dec(b.river), ward: dec(b.ward || []), ranh: dec(b.ranh || [])};
+    this.texts = b.text.filter(t => t[0] !== 'xa').map(t => ({k: t[0], x: t[1] / 10, y: t[2] / 10, h: t[3], r: t[4] * Math.PI / 180, s: t[5], hem: /^(hẻm|h\.|kiệt|ngõ)/i.test(t[5])}));
+    this.texts.sort((a, b) => (a.hem - b.hem) || (b.h - a.h));
+    this.wtexts = (b.wtext || []).map(t => ({s: t[0], x: t[1] / 10, y: t[2] / 10}));
   }
-  return p[p.length - 1];
+};
+// Chuyển VN-2000 (TP.HCM, KTT 105°45', múi 3°) → WGS84 gần đúng – để mở Google Maps
+function vn2000ToWgs(X, Y) {
+  const a = 6378137, f = 1 / 298.257223563, e2 = 2 * f - f * f, k0 = 0.9999, L0 = (105 + 45 / 60) * Math.PI / 180;
+  const x = Y, yE = X - 500000;
+  const M = x / k0, mu = M / (a * (1 - e2 / 4 - 3 * e2 * e2 / 64 - 5 * e2 ** 3 / 256));
+  const e1 = (1 - Math.sqrt(1 - e2)) / (1 + Math.sqrt(1 - e2));
+  const phi1 = mu + (3 * e1 / 2 - 27 * e1 ** 3 / 32) * Math.sin(2 * mu) + (21 * e1 * e1 / 16 - 55 * e1 ** 4 / 32) * Math.sin(4 * mu) + (151 * e1 ** 3 / 96) * Math.sin(6 * mu);
+  const N1 = a / Math.sqrt(1 - e2 * Math.sin(phi1) ** 2), T1 = Math.tan(phi1) ** 2, ep2 = e2 / (1 - e2), C1 = ep2 * Math.cos(phi1) ** 2;
+  const R1 = a * (1 - e2) / (1 - e2 * Math.sin(phi1) ** 2) ** 1.5, D = yE / (N1 * k0);
+  const lat = phi1 - (N1 * Math.tan(phi1) / R1) * (D * D / 2 - (5 + 3 * T1 + 10 * C1 - 4 * C1 * C1 - 9 * ep2) * D ** 4 / 24);
+  const lon = L0 + (D - (1 + 2 * T1 + C1) * D ** 3 / 6) / Math.cos(phi1);
+  return [lat * 180 / Math.PI, lon * 180 / Math.PI];
 }
-Object.values(ROUTES).forEach(r => {
-  const cab = NET_CAB[r.cab], L = polyLen(r.path);
-  r.posts = Array.from({length: r.n}, (_, i) => polyAt(r.path, L * (i + 0.5) / r.n));
-  const lead = Math.hypot(r.path[0][0] - cab.pos[0], r.path[0][1] - cab.pos[1]);
-  r.distM = r.posts.map((_, i) => Math.round((lead + L * (i + 0.5) / r.n) * M_PER_UNIT));   // khoảng cách theo cáp từ tủ (m)
-});
-const SAMPLE = NET.cabs.map(c => ({id: c.id, name: c.name, area: c.area, team: c.team}));
+function polesLatLon(i) { const p = LG.D.p[i]; return p && p[11] && p[12] ? [+p[11], +p[12]] : vn2000ToWgs(LG.PX[i] + LG.X0, LG.PY[i] + LG.Y0); }
+function cabLatLon(c) { return c.root !== undefined ? polesLatLon(c.root) : vn2000ToWgs(c.x + LG.X0, c.y + LG.Y0); }
 
 /* =====================================================================
    2. TIỆN ÍCH
@@ -380,28 +539,30 @@ const Clock = {
 };
 
 /* =====================================================================
-   4. TỦ GIẢ LẬP (Demo) – mô phỏng điện tới từng cột trên từng tuyến.
-      Nhận lệnh và gửi bản tin đúng định dạng firmware tu_chieu_sang.ino,
-      thêm "r" (dòng từng tuyến) và "rcb" (CB nhánh từng tuyến).
+   4. TỦ GIẢ LẬP (Demo) theo mạng thật của LIGHTING-GIS.
+      Mô phỏng điện qua cây cáp tới từng trụ, công suất đèn từng trụ.
+      Nhận lệnh, gửi bản tin đúng định dạng firmware tu_chieu_sang.ino.
+      Toàn bộ đèn của tủ coi là kênh K1 (cả đêm) – LIGHTING-GIS chưa có
+      dữ liệu chia kênh K1/K2.
    ===================================================================== */
-class NetDevice {
-  constructor(net) {
-    this.net = net; this.id = net.id;
+class GisDevice {
+  constructor(cab) {
+    this.cab = cab; this.id = cab.id;
     this.f = {mains: false, cbTrip: false, door: false, spdFail: false, local: false, offline: false, meter: false,
               kfail: [false, false, false, false], kstuck: [false, false, false, false]};
+    this.cuts = new Set(); this.fails = new Set(); this.down = null;
     this.sched = DEF_SCHED.map(s => s.slice());
     this.mode = 'auto'; this.maint = false;
     this.doState = [0, 1, 2, 3].map(c => this.schedOn(c));
     this.remoteDo = this.doState.slice();
     this.di = [0, 1, 0, 0, 1, 1];
-    this.tick = Math.floor(Math.random() * CFG.TELE_EVERY);
-    this.changedTick = -1000;
-    this.routes = {};
-    net.routes.forEach(r => { this.routes[r.id] = {cb: true, cut: null, fails: new Set(), down: null, I: [0, 0, 0], lit: [], energ: false}; });
+    this.tick = Math.floor(Math.random() * CFG.GIS_TELE_EVERY);
+    this.changedTick = -1000; this.burst = 0;
     this.ph = [0, 1, 2].map(() => ({v: 0, i: 0, p: 0, pf: 0, ok: true}));
     this.freq = 50; this.wh = rnd(2000, 9000) * 1000;
     this.tilt = rnd(0.2, 1.2); this.vib = 0; this.lastCollision = -1e9;
     this.meterFail = 0; this.alarms = {}; this.queue = []; this.offTicks = 0; this.lwtSent = false;
+    this.lit = null;
   }
   topic(leaf) { return `${App.root()}/tu/${this.id}/${leaf}`; }
   out(leaf, obj) {
@@ -416,7 +577,7 @@ class NetDevice {
       const want = this.mode === 'auto' ? this.schedOn(c) : this.remoteDo[c];
       if (want !== this.doState[c]) { this.doState[c] = want; changed = true; }
     }
-    if (changed) this.changedTick = this.tick;
+    if (changed) { this.changedTick = this.tick; this.burst = 2; }
   }
   readInputs() {
     const f = this.f;
@@ -426,51 +587,48 @@ class NetDevice {
     this.di[DI.AUTO] = f.local ? 0 : 1;
     for (let c = 0; c < 2; c++) this.di[FB_OF_DO[c]] = ((this.doState[c] || f.kstuck[c]) && !f.kfail[c]) ? 1 : 0;
   }
-  // Điện: tủ có áp → kênh đóng → CB nhánh → từng cột (đứt cáp, hỏng bóng, cột đổ)
+  // Điện đi theo cây cáp: đoạn bị cắt làm tắt cả nhánh phía sau; trụ đổ chạm đất làm nhảy CB tổng
   physics() {
-    const f = this.f, powered = !f.mains && this.di[DI.CB];
-    const I = [0, 0, 0];
-    this.net.routes.forEach(r => {
-      const rs = this.routes[r.id];
-      let energ = powered && this.closed(r.ch) && rs.cb;
-      if (energ && rs.down !== null) { rs.cb = false; energ = false; }      // cột đổ chạm đất → ngắn mạch → nhảy CB nhánh
-      rs.energ = energ; rs.I = [0, 0, 0];
-      for (let i = 0; i < r.n; i++) {
-        const lit = energ && (rs.cut === null || i < rs.cut) && !rs.fails.has(i) && rs.down !== i;
-        rs.lit[i] = lit;
-        if (lit) rs.I[i % 3] += LAMP_A * (1 + rnd(-0.02, 0.02));
-      }
-      for (let k = 0; k < 3; k++) I[k] += rs.I[k];
-    });
-    for (let k = 0; k < 3; k++) {
-      const p = this.ph[k];
+    const f = this.f, cab = this.cab, order = cab.order || [];
+    if (this.down !== null && !f.mains && this.di[DI.CB] && this.closed(0)) { f.cbTrip = true; this.readInputs(); }
+    const powered = !f.mains && this.di[DI.CB], on = powered && this.closed(0);
+    const I = [0, 0, 0], dead = this.dead || (this.dead = new Uint8Array(LG.n));
+    let k = 0;
+    for (const i of order) {
+      const p = LG.PP[i];
+      dead[i] = (p >= 0 && dead[p]) || this.cuts.has(i) || this.down === i ? 1 : 0;
+      if (on && !dead[i] && !this.fails.has(i)) I[k % 3] += LG.PI[i] * (1 + rnd(-0.015, 0.015));
+      k++;
+    }
+    for (let q = 0; q < 3; q++) {
+      const p = this.ph[q];
       if (f.meter) { p.ok = false; continue; }
       p.ok = true;
       p.v = powered ? 225 + rnd(-2, 2) : rnd(0, 2);
-      p.i = I[k] + (powered ? rnd(0, 0.02) : 0);
+      p.i = I[q] + (powered ? rnd(0, 0.02) : 0);
       p.pf = p.i > 0.1 ? 0.95 + rnd(-0.01, 0.01) : 0;
       p.p = p.v * p.i * p.pf;
       this.wh += p.p * Clock.speed / 3600;
     }
     this.freq = powered ? 50 + rnd(-0.05, 0.05) : 0;
     this.meterFail = f.meter ? this.meterFail + 1 : 0;
+    this.on = on;
   }
+  // Trạng thái thật từng trụ (chỉ dùng cho Demo – tủ thật không biết điều này)
+  poleLit(i) { return this.on && !(this.dead && this.dead[i]) && !this.fails.has(i); }
   send(code, phase, on, msg, extra) {
     this.out('alarm', Object.assign({id: this.id, code, phase, state: on ? 'on' : 'off', ts: Math.floor(Clock.ms / 1000), msg,
       v: this.ph.map(p => +p.v.toFixed(1)), i: this.ph.map(p => +p.i.toFixed(2))}, extra || {}));
   }
-  ev(key, code, phase, cond, need, msgOn, msgOff, extra) {
+  ev(key, code, phase, cond, need, msgOn, msgOff) {
     const a = this.alarms[key] || (this.alarms[key] = {cnt: 0, active: false});
-    if (cond) {
-      a.cnt++;
-      if (!a.active && a.cnt >= need) { a.active = true; a.sig = JSON.stringify(extra || {}); this.send(code, phase, true, msgOn, extra); }
-      else if (a.active && extra && JSON.stringify(extra) !== a.sig) { a.sig = JSON.stringify(extra); this.send(code, phase, true, msgOn, extra); }   // vị trí ước tính thay đổi
-    } else { a.cnt = 0; if (a.active) { a.active = false; this.send(code, phase, false, msgOff); } }
+    if (cond) { a.cnt++; if (!a.active && a.cnt >= need) { a.active = true; this.send(code, phase, true, msgOn); } }
+    else { a.cnt = 0; if (a.active) { a.active = false; this.send(code, phase, false, msgOff); } }
   }
   analyze() {
     const ph = this.ph, di = this.di, settled = this.tick - this.changedTick > CFG.GRACE_TICKS;
     const localManual = !di[DI.AUTO], anyOn = this.doState.some(Boolean);
-    this.ev('CB_TONG', 'CB_TONG', '-', !di[DI.CB], 2, 'CB tổng bị cắt/nhảy', 'CB tổng đã đóng');
+    this.ev('CB_TONG', 'CB_TONG', '-', !di[DI.CB], 2, this.down !== null ? 'CB tổng nhảy – nghi ngắn mạch trên tuyến (trụ đổ / cáp chạm đất)' : 'CB tổng bị cắt/nhảy', 'CB tổng đã đóng');
     const allLost = ph.filter(p => p.ok && p.v < CFG.V_LOST).length === 3;
     this.ev('MAT_DIEN', 'MAT_DIEN', '-', allLost && di[DI.CB], CFG.DEBOUNCE_N, 'Mất điện lưới cả 3 pha', 'Đã có điện lại');
     const allVOk = ph.every(p => p.ok && p.v >= CFG.V_MIN_OK);
@@ -479,21 +637,6 @@ class NetDevice {
       this.ev('KD' + c, 'K_KHONG_DONG', String(c + 1), !localManual && allVOk && this.doState[c] && !fb, CFG.FB_DEBOUNCE_N, 'Đã ra lệnh đóng nhưng contactor không đóng', 'Contactor đã đóng');
       this.ev('KC' + c, 'K_KHONG_CAT', String(c + 1), !localManual && !this.doState[c] && fb, CFG.FB_DEBOUNCE_N, 'Đã ra lệnh cắt nhưng contactor vẫn đóng', 'Contactor đã cắt');
     }
-    // Theo từng tuyến: so dòng đo được với số bóng của tuyến
-    this.net.routes.forEach(r => {
-      const rs = this.routes[r.id];
-      this.ev('CBN' + r.id, 'CB_NHANH', r.id, !rs.cb, 2, `Nhảy CB nhánh tuyến ${r.id} (${r.name})`, `CB nhánh ${r.id} đã đóng`);
-      const expectOn = allVOk && di[DI.CB] && this.closed(r.ch) && rs.cb && settled;
-      const tot = rs.I.reduce((a, b) => a + b, 0), lost = Math.round((r.n * LAMP_A - tot) / LAMP_A);
-      const zero = expectOn && tot < 0.2, cut = expectOn && !zero && lost >= 3, lamp = expectOn && !zero && lost >= 1 && lost <= 2;
-      const est = r.n - lost;
-      this.ev('ZERO' + r.id, 'MAT_DIEN_TUYEN', r.id, zero, CFG.DEBOUNCE_N,
-        `${r.id}: đã cấp điện nhưng dòng ≈ 0 – nghi đứt cáp sát tủ (trước cột #1, ≈ ${r.distM[0]} m)`, `${r.id}: đã có dòng`, {est: 0, lost: r.n});
-      this.ev('CUT' + r.id, 'CAT_CAP', r.id, cut, CFG.DEBOUNCE_N,
-        `${r.id}: dòng giảm ≈ ${lost} bóng – nghi đứt cáp sau cột #${est} (≈ ${r.distM[Math.max(0, est - 1)]}–${r.distM[Math.min(r.n - 1, est)]} m từ tủ)`, `${r.id}: dòng đã trở lại`, cut ? {est, lost} : undefined);
-      this.ev('LAMP' + r.id, 'HONG_BONG', r.id, lamp, CFG.DEBOUNCE_N,
-        `${r.id}: dòng giảm ≈ ${lost} bóng – nghi hỏng bóng lẻ`, `${r.id}: dòng đã đủ`, lamp ? {lost} : undefined);
-    });
     const iSum = ph.reduce((s, p) => s + (p.ok ? p.i : 0), 0);
     this.ev('SANG_NGAY', 'SANG_NGAY', '-', !anyOn && !localManual && settled && iSum >= CFG.I_LOADED, CFG.DEBOUNCE_N, 'Tất cả kênh đã cắt nhưng vẫn có dòng', 'Đèn đã tắt');
     this.ev('SPD', 'SPD', '-', !di[DI.SPD], 2, 'Thiết bị chống sét hỏng', 'Chống sét bình thường');
@@ -508,20 +651,20 @@ class NetDevice {
     this.ev('NGHIENG', 'NGHIENG', '-', this.tilt > CFG.TILT_ALARM, CFG.DEBOUNCE_N, 'Tủ bị nghiêng', 'Đã hết nghiêng');
   }
   telemetry() {
-    const ph = this.ph, ok = p => p.ok, r = {}, rcb = {};
-    this.net.routes.forEach(x => { const rs = this.routes[x.id]; r[x.id] = rs.I.map(v => +v.toFixed(2)); rcb[x.id] = rs.cb ? 1 : 0; });
+    const ph = this.ph, ok = p => p.ok;
     this.out('telemetry', {id: this.id, ts: Math.floor(Clock.ms / 1000), f: +this.freq.toFixed(2), kwh: +(this.wh / 1000).toFixed(2),
       mode: this.mode, maint: this.maint ? 1 : 0, tilt: +this.tilt.toFixed(1), rssi: Math.round(rnd(-78, -55)), q: this.queue.length, sd: 1,
       v: ph.map(p => ok(p) ? +p.v.toFixed(1) : null), i: ph.map(p => ok(p) ? +p.i.toFixed(2) : null),
       p: ph.map(p => ok(p) ? +p.p.toFixed(1) : null), pf: ph.map(p => ok(p) ? +p.pf.toFixed(2) : null),
-      di: this.di.slice(), do: this.doState.map(Number), sch: this.sched.map(s => s.slice()), r, rcb});
+      di: this.di.slice(), do: this.doState.map(Number), sch: this.sched.map(s => s.slice())});
   }
   step() {
     this.tick++;
     this.readInputs(); this.applyOutputs(); this.readInputs(); this.physics(); this.analyze();
     if (this.f.offline) {
       if (++this.offTicks === CFG.LWT_AFTER && !this.lwtSent) { this.lwtSent = true; Bus.fromDevice(this.topic('status'), 'offline', 'sim'); }
-    } else if (this.tick % CFG.TELE_EVERY === 0) this.telemetry();
+    } else if (this.burst > 0) { this.burst--; this.telemetry(); }
+    else if (this.tick % CFG.GIS_TELE_EVERY === 0) this.telemetry();
   }
   setOffline(on) {
     this.f.offline = on;
@@ -533,7 +676,7 @@ class NetDevice {
       this.telemetry();
     }
   }
-  // Cú pháp lệnh giống firmware: "<ref> <lệnh> <tham số>"; thêm "rcb <tuyến> 1" và "cb 1" (CB có motor đóng lại từ xa)
+  // Lệnh giống firmware: "<ref> <lệnh> <tham số>"; thêm "cb 1" (CB tổng có motor đóng lại từ xa)
   onCmd(text) {
     if (this.f.offline) return;
     const m = text.trim().split(/\s+/), ref = +m[0], cmd = m[1], a = m.slice(2);
@@ -557,10 +700,10 @@ class NetDevice {
       const on = t.test(a[2] || '') ? toMin(a[2]) : NaN, off = t.test(a[3] || '') ? toMin(a[3]) : NaN;
       if (ch >= 1 && ch <= N_DO && on >= 0 && on < 1440 && off >= 0 && off < 1440) this.sched[ch - 1] = [en ? 1 : 0, on, off];
       else { ok = false; msg = 'Lich sai'; }
-    } else if (cmd === 'rcb') {
-      const rs = this.routes[a[0]];
-      if (!rs) { ok = false; msg = 'Tham so sai'; } else { rs.cb = true; this.readInputs(); this.physics(); if (!rs.cb) { ok = false; msg = 'CB nhanh nhay lai - con su co'; } }
-    } else if (cmd === 'cb') { this.f.cbTrip = false; }
+    } else if (cmd === 'cb') {
+      this.f.cbTrip = false; this.readInputs(); this.physics();
+      if (this.f.cbTrip) { ok = false; msg = 'CB tong nhay lai - con su co'; }
+    }
     else if (cmd === 'maint') this.maint = +a[0] !== 0;
     else if (cmd === 'status') { /* chỉ gửi lại số liệu */ }
     else if (cmd === 'sim') applySimFault(this, a[0], +a[1]);
@@ -570,6 +713,41 @@ class NetDevice {
     this.telemetry();
   }
 }
+
+/* ---------- Phân tích phía phần mềm: dòng đo được so với danh mục đèn LIGHTING-GIS ----------
+   Dùng cho cả tủ Demo và tủ thật (chỉ cần dòng tổng 3 pha của tủ). */
+const Analyzer = {
+  st: {},
+  run(cab) {
+    const g = cab.cfg.gis !== undefined ? LG.byT[cab.cfg.gis] : null, t = cab.tele;
+    if (!g || !g.exp || !t) return;
+    const s = this.st[cab.cfg.key] || (this.st[cab.cfg.key] = {calib: 1, cnt: {}, lastDo: null, since: 0});
+    const di = t.di || [], v = t.v || [], iSum = (t.i || []).reduce((a, b) => a + (b || 0), 0);
+    const closed = FB_OF_DO[0] >= 0 ? di[FB_OF_DO[0]] === 1 : (t.do || [])[0] === 1;
+    const vok = v.length && v.every(x => x !== null && x >= CFG.V_MIN_OK);
+    const doKey = (t.do || []).join('');
+    if (doKey !== s.lastDo) { s.lastDo = doKey; s.since = Date.now(); }
+    const settled = Date.now() - s.since > 1500;
+    const exp = g.exp * s.calib, lost = exp - iSum, lamps = lost / g.avgI;
+    let code = null, msg = '', cand = [];
+    if (closed && vok && di[DI.CB] !== 0 && settled) {
+      if (iSum < 0.1 * exp) { code = 'KHONG_SANG'; cand = [g.root]; msg = `Đã đóng K1 nhưng dòng ≈ 0 (chuẩn ${exp.toFixed(1)} A) – nghi đứt cáp đầu tuyến hoặc mất CB nhánh`; }
+      else if (lamps >= 2.5 && lost >= 0.06 * exp) {
+        code = 'CAT_CAP'; cand = LG.locate(g, lost / s.calib);
+        msg = `Dòng giảm ${lost.toFixed(1)} A (≈ ${Math.round(lamps)} bóng) – ${cand.length ? 'nghi đứt cáp ' + LG.where(cand[0]) : 'chưa khớp được đoạn cáp nào, cần kiểm tra'}`;
+      } else if (lamps >= 0.6) { code = 'HONG_BONG'; msg = `Dòng giảm ${lost.toFixed(1)} A (≈ ${Math.max(1, Math.round(lamps))} bóng) – nghi hỏng bóng lẻ`; }
+      else if (Math.abs(iSum / g.exp - 1) < 0.15) s.calib = 0.95 * s.calib + 0.05 * (iSum / g.exp);   // tự hiệu chỉnh theo dòng thực tế
+    }
+    for (const c of ['KHONG_SANG', 'CAT_CAP', 'HONG_BONG']) {
+      const on = c === code;
+      s.cnt[c] = on ? (s.cnt[c] || 0) + 1 : 0;
+      const active = !!cab.active[c];
+      if (on && s.cnt[c] >= 2 && (!active || JSON.stringify(cab.active[c].cand) !== JSON.stringify(cand))) App.onAlarm(cab, {code: c, phase: '-', state: 'on', msg, cand, lost: +lost.toFixed(2), ts: t.ts || 0});
+      if (!on && active) App.onAlarm(cab, {code: c, phase: '-', state: 'off', msg: 'Dòng đã trở lại bình thường', ts: t.ts || 0});
+    }
+  }
+};
+
 /* =====================================================================
    5. BUS – thay cho broker MQTT khi chạy demo; ghi bản tin ra console
    ===================================================================== */
@@ -594,43 +772,52 @@ const Bus = {
 /* =====================================================================
    6. TRẠNG THÁI APP
    ===================================================================== */
-const DEF_SETTINGS = {demo: true, teams: ['Tổ 1', 'Tổ 2', 'Tổ 3', 'Tổ trực đêm'], pinHash: '',
+const DEF_SETTINGS = {demo: true, teams: ['Tổ Q1', 'Tổ Q3', 'Tổ Bình Thạnh', 'Tổ Phú Nhuận', 'Tổ trực đêm'], pinHash: '',
   mq: {url: 'wss://broker.hivemq.com:8884/mqtt', root: 'cs/demo-doi-cs', user: '', pass: '', auto: false}};
-const savedSettings = store.get('gst2.settings', {});
+const savedSettings = store.get('gst3.settings', {});
 const App = {
   settings: Object.assign({}, DEF_SETTINGS, savedSettings, {mq: Object.assign({}, DEF_SETTINGS.mq, savedSettings.mq || {})}),
-  cabCfg: store.get('gst2.cabs', null),
-  incidents: store.get('gst2.inc', []),
-  seq: store.get('gst2.seq', 0),
-  energy: store.get('gst2.energy', {}),
+  cabCfg: store.get('gst3.cabs', null),
+  incidents: store.get('gst3.inc', []),
+  seq: store.get('gst3.seq', 0),
+  energy: store.get('gst3.energy', {}),
   cabs: {}, devices: {}, pending: {}, sel: new Set(), area: '', incFilter: 'open', incDirty: true, bulkCh: 'all',
-  mq: null, mqState: 'off', unlockedUntil: 0, random: false, randomTimer: 0, simCab: 'TU-01', simRoute: 'R1', simPost: 4, sound: false,
+  mq: null, mqState: 'off', unlockedUntil: 0, random: false, randomTimer: 0, simCab: '', simPost: 5, ctlN: 24, byGis: {}, inited: false, sound: false,
 
   root() { return (this.settings.mq.root || 'cs/demo').trim(); },
-  saveSettings() { store.set('gst2.settings', this.settings); },
-  saveCabs() { store.set('gst2.cabs', this.cabCfg); },
-  saveInc() { store.set('gst2.inc', this.incidents.slice(-800)); store.set('gst2.seq', this.seq); },
-  saveEnergy() { store.set('gst2.energy', this.energy); },
+  saveSettings() { store.set('gst3.settings', this.settings); },
+  saveCabs() { store.set('gst3.cabs', this.cabCfg.filter(c => c.source !== 'sim')); },
+  saveInc() { store.set('gst3.inc', this.incidents.slice(-800)); store.set('gst3.seq', this.seq); },
+  saveEnergy() { store.set('gst3.energy', this.energy); },
 
+  // Khởi tạo sau khi tải xong LIGHTING-GIS: mỗi tủ GIS có một tủ Demo; tủ thật (MQTT) tự gắn theo mã
   init() {
-    if (!Array.isArray(this.cabCfg)) {
-      this.cabCfg = SAMPLE.map(m => ({key: 'sim:' + m.id, id: m.id, source: 'sim', name: m.name, area: m.area, team: m.team,
-        doNames: DEF_DO.slice(), diNames: DEF_DI.slice()}));
-      this.saveCabs();
-    }
-    this.cabCfg.forEach(cfg => this.addRuntime(cfg));
-    NET.cabs.forEach(c => { this.devices[c.id] = new NetDevice(c); });
+    const saved = Array.isArray(this.cabCfg) ? this.cabCfg.filter(c => c.source !== 'sim') : [];
+    const teams = this.settings.teams;
+    saved.forEach(c => { const g = LG.byId[c.id]; if (g) c.gis = g.t; });
+    const sims = LG.cabs.map(g => ({key: 'sim:' + g.id, id: g.id, source: 'sim', gis: g.t, name: g.name, area: `${LG.QNAME[g.q]}${g.ward ? ' · ' + g.ward : ''}`,
+      team: teams[g.q] || teams[0], doNames: DEF_DO.slice(), diNames: DEF_DI.slice()}));
+    this.cabCfg = saved.concat(sims);
+    this.cabCfg.forEach(cfg => { if (this.cabs[cfg.key]) { this.cabs[cfg.key].cfg = cfg; this.indexGis(cfg); } else this.addRuntime(cfg); });
+    Object.values(this.cabs).forEach(c => { if (c.cfg.gis === undefined && LG.byId[c.cfg.id]) { c.cfg.gis = LG.byId[c.cfg.id].t; this.indexGis(c.cfg); } });
+    LG.cabs.forEach(g => { this.devices[g.id] = new GisDevice(g); });
+    if (!LG.byId[this.simCab]) this.simCab = (LG.cabs.find(g => g.poles.length > 20) || LG.cabs[0]).id;
     if (this.settings.demo) Object.values(this.devices).forEach(d => { d.readInputs(); d.physics(); d.telemetry(); });
+    this.inited = true;
   },
+  indexGis(cfg) { if (cfg.gis === undefined) return; const a = this.byGis[cfg.gis] || (this.byGis[cfg.gis] = []); if (!a.includes(cfg.key)) a.push(cfg.key); },
   addRuntime(cfg) {
     this.cabs[cfg.key] = {cfg, tele: null, online: true, lastSeen: Date.now(), hist: [], active: {}, log: []};
+    this.indexGis(cfg);
     return this.cabs[cfg.key];
   },
   visibleCabs() { return Object.values(this.cabs).filter(c => c.cfg.source !== 'sim' || this.settings.demo); },
   ensureCab(source, id) {
     const key = source + ':' + id;
     if (this.cabs[key]) return this.cabs[key];
-    const cfg = {key, id, source, name: 'Tủ ' + id, area: 'Chưa phân khu', team: this.settings.teams[0] || 'Tổ 1', doNames: DEF_DO.slice(), diNames: DEF_DI.slice()};
+    const g = LG.ready ? LG.byId[id] : null;
+    const cfg = {key, id, source, gis: g ? g.t : undefined, name: g ? g.name : 'Tủ ' + id, area: g ? `${LG.QNAME[g.q]}${g.ward ? ' · ' + g.ward : ''}` : 'Chưa gắn GIS',
+      team: g ? (this.settings.teams[g.q] || this.settings.teams[0]) : this.settings.teams[0] || 'Tổ 1', doNames: DEF_DO.slice(), diNames: DEF_DI.slice()};
     this.cabCfg.push(cfg); this.saveCabs();
     return this.addRuntime(cfg);
   },
@@ -659,11 +846,11 @@ const App = {
     if (cab.hist.length > CFG.HIST) cab.hist.shift();
     if (typeof m.kwh === 'number') {
       const e = this.energy[cab.cfg.key] || (this.energy[cab.cfg.key] = {});
-      if (!Object.keys(e).length && cab.cfg.source === 'sim') seedEnergy(e, m.kwh, cab, t);
       const d = dayKey(t);
       if (!e[d]) e[d] = [m.kwh, m.kwh]; else e[d][1] = m.kwh;
       this.energyDirty = true;
     }
+    if (LG.ready) Analyzer.run(cab);
   },
   markOffline(cab, why) { if (!cab.online) return; cab.online = false; this.onAlarm(cab, {code: 'MAT_KET_NOI', phase: '-', state: 'on', msg: why, ts: 0}); },
   markOnline(cab) { if (cab.online) return; cab.online = true; cab.lastSeen = Date.now(); this.onAlarm(cab, {code: 'MAT_KET_NOI', phase: '-', state: 'off', msg: 'Thiết bị kết nối lại', ts: 0}); },
@@ -678,6 +865,7 @@ const App = {
     this.addLog(cab, `${m.state === 'on' ? '⚠️' : '✅'} ${info.label}${phase ? ' ' + phaseLabel(m.code, phase) : ''}: ${m.msg}`, at);
     let inc = this.incidents.find(x => x.cab === cab.cfg.key && x.code === m.code && x.status !== 'done');
     const iTxt = m.i && /^[ABC]$/.test(phase || '') ? ` (I=${m.i['ABC'.indexOf(phase)]} A, U=${m.v['ABC'.indexOf(phase)]} V)` : '';
+    if (m.state === 'on' && m.cand) { if (inc) { inc.cand = m.cand; inc.lost = m.lost; } }   // vị trí nghi đứt theo GIS
     if (m.state === 'on' && m.est !== undefined && phase) {           // vị trí ước tính theo tuyến
       cab.active[akey].est = m.est;
       if (inc) { inc.est = inc.est || {}; inc.est[phase] = m.est; }
@@ -691,7 +879,7 @@ const App = {
       } else {
         inc = {no: 'SC-' + String(++this.seq).padStart(4, '0'), cab: cab.cfg.key, tu: cab.cfg.id, name: cab.cfg.name, area: cab.cfg.area,
           code: m.code, phases: phase ? [phase] : [], activePh: phase ? [phase] : [], at, status: 'new', team: cab.cfg.team,
-          note: '', count: 1, cleared: false, est: m.est !== undefined && phase ? {[phase]: m.est} : undefined, log: [{t: at, s: `Phát hiện: ${m.msg}${iTxt}`}]};
+          note: '', count: 1, cleared: false, est: m.est !== undefined && phase ? {[phase]: m.est} : undefined, cand: m.cand, lost: m.lost, log: [{t: at, s: `Phát hiện: ${m.msg}${iTxt}`}]};
         this.incidents.push(inc);
         toast(`${info.icon} ${cab.cfg.id}: ${info.label}${phase ? ' – ' + phaseLabel(m.code, phase) : ''}`);
         if (info.sev >= 3) this.alert();
@@ -749,8 +937,8 @@ function modeInfo(t) {
   return t.mode === 'remote' ? {txt: '📱 Điều khiển từ xa', cls: 'acc'} : {txt: '🕒 Tự động theo lịch', cls: 'ok'};
 }
 function seedEnergy(e, kwhNow, cab, t) {            // dữ liệu mẫu 30 ngày trước cho tủ demo
-  const nc = NET_CAB[cab.cfg.id], chHrs = [11.5, 5];
-  const daily = nc ? nc.routes.reduce((s2, r) => s2 + r.n * LAMP_A * 0.225 * 0.95 * chHrs[r.ch], 0) : 20;
+  const g = cab.cfg.gis !== undefined ? LG.byT[cab.cfg.gis] : null;
+  const daily = g ? g.exp * 0.225 * 0.95 * 11.5 : 20;
   const hrs = new Date(t).getHours() + new Date(t).getMinutes() / 60;
   // phần đã dùng từ 0h: rạng sáng (đến 5:30) ~ 45% điện năng ngày, tối (từ 18:00) phần còn lại
   const usedToday = daily * (Math.min(hrs, 5.5) / 5.5 * 0.45 + (hrs >= 18 ? (hrs - 18) / 6 * 0.55 : 0));
@@ -902,32 +1090,38 @@ function ctlTabs(on) {
   return `<div class="row" style="margin-bottom:10px"><h1 class="grow" style="margin:0">Điều khiển tủ</h1></div>
     <div class="tabs"><a href="#/dieu-khien" class="${on === 'tu' ? 'on' : ''}">🗄️ Các tủ</a><a href="#/dieu-khien/hang-loat" class="${on === 'hang-loat' ? 'on' : ''}">🎛️ Điều khiển hàng loạt</a></div>`;
 }
+function ctlFiltered() {
+  return App.visibleCabs().filter(c => {
+    const g = c.cfg.gis !== undefined ? LG.byT[c.cfg.gis] : null;
+    if (g) return cabMatches(g) && (c.cfg.source !== 'sim' || gisCab(g.t) === c);
+    return Filt.q < 0 && (!Filt.text || unaccent(c.cfg.id + ' ' + c.cfg.name).includes(unaccent(Filt.text)));
+  });
+}
+function ctlSearch(id) { return `<div class="row" style="margin:8px 0">${qChips('c-q')}<input class="in grow" id="${id}" data-act="ctl-find" placeholder="Tìm tủ theo mã, tên, địa chỉ, phường…" value="${esc(Filt.text)}" autocomplete="off" style="min-width:180px"></div>`; }
 function viewHome() {
-  const cabs = App.visibleCabs().sort((a, b) => a.cfg.id.localeCompare(b.cfg.id));
-  const online = cabs.filter(c => c.online).length;
-  const lit = cabs.filter(c => (c.tele?.do || []).some(x => x)).length;
-  const pkw = cabs.reduce((s, c) => s + (c.tele?.p || []).reduce((a, b) => a + (b || 0), 0), 0) / 1000;
-  const today = cabs.reduce((s, c) => s + energyStats(c.cfg.key, App.nowFor(c)).today, 0);
+  if (!LG.ready || !App.inited) return gisLoading();
+  const cabs = ctlFiltered();
+  const online = cabs.filter(c => c.online && c.tele).length, lit = cabs.filter(c => (c.tele?.do || []).some(x => x)).length;
+  const pkw = cabs.reduce((s2, c) => s2 + (c.tele?.p || []).reduce((a, b) => a + (b || 0), 0), 0) / 1000;
   const openInc = App.incidents.filter(x => x.status !== 'done').length;
   const order = {bad: 0, warn: 1, off: 2, ok: 3};
-  const attn = cabs.filter(c => App.cabState(c) !== 'ok').sort((a, b) => order[App.cabState(a)] - order[App.cabState(b)]);
-  const okCabs = cabs.filter(c => App.cabState(c) === 'ok');
-  return `${ctlTabs('tu')}
+  cabs.sort((a, b) => order[App.cabState(a)] - order[App.cabState(b)] || a.cfg.id.localeCompare(b.cfg.id));
+  const shown = cabs.slice(0, App.ctlN);
+  return `${ctlTabs('tu')}${ctlSearch('ctlQ')}
     <div class="kpis">
       <div class="kpi"><span>Tủ trực tuyến</span><b>${online}<small>/ ${cabs.length}</small></b></div>
       <div class="kpi"><span>Tủ đang sáng</span><b>${lit}</b></div>
-      <div class="kpi"><span>Công suất tổng</span><b>${pkw.toFixed(1)}<small>kW</small></b></div>
-      <div class="kpi"><span>Điện năng hôm nay</span><b>${today.toFixed(1)}<small>kWh</small></b></div>
+      <div class="kpi"><span>Công suất</span><b>${pkw.toFixed(1)}<small>kW</small></b></div>
       <a class="kpi" href="#/canh-bao" style="color:inherit"><span>Sự cố chưa xong</span><b style="color:${openInc ? 'var(--bad)' : 'var(--ok)'}">${openInc}</b></a>
     </div>
-    ${attn.length ? `<h3>Cần chú ý (${attn.length})</h3><div class="grid">${attn.map(cabCard).join('')}</div>` : ''}
-    ${okCabs.length ? `<h3>Hoạt động bình thường (${okCabs.length})</h3><div class="grid">${okCabs.map(cabCard).join('')}</div>` : ''}
-    ${cabs.length ? '' : '<div class="empty">Chưa có tủ. Bật chế độ Demo hoặc kết nối thiết bị trong <a href="#/cai-dat">Cài đặt</a>.</div>'}`;
+    <div class="grid">${shown.map(cabCard).join('') || '<div class="empty">Không có tủ khớp bộ lọc.</div>'}</div>
+    ${cabs.length > shown.length ? `<div class="btns" style="justify-content:center"><button class="btn" data-act="ctl-more">Xem thêm (${cabs.length - shown.length} tủ)</button></div>` : ''}`;
 }
 
 /* ---------- Chi tiết tủ ---------- */
 const TABS = [['do-luong', 'Đo lường'], ['3d', 'Sơ đồ 3D'], ['vao-ra', 'Vào / Ra'], ['dien-nang', 'Điện năng'], ['lich', 'Lịch'], ['nhat-ky', 'Nhật ký']];
 function viewCab(key, tab) {
+  if (!App.inited) return gisLoading();
   const cab = App.cabs[key];
   if (!cab) return '<div class="empty">Không tìm thấy tủ. <a href="#/dieu-khien">Về danh sách</a></div>';
   const body = {'do-luong': tabMeasure, '3d': tab3D, 'vao-ra': tabIO, 'dien-nang': tabEnergy, 'lich': tabSched, 'nhat-ky': tabLog}[tab](cab);
@@ -1011,6 +1205,8 @@ function tabIO(cab) {
     </div></div>`;
 }
 function tabEnergy(cab) {
+  const e0 = App.energy[cab.cfg.key];
+  if (cab.cfg.source === 'sim' && cab.tele && (!e0 || Object.keys(e0).length < 2)) { const e = App.energy[cab.cfg.key] = e0 || {}; seedEnergy(e, cab.tele.kwh, cab, App.nowFor(cab)); }
   const st = energyStats(cab.cfg.key, App.nowFor(cab)), t = cab.tele || {};
   return `<div class="kpis">
       <div class="kpi"><span>Chỉ số tổng</span><b>${num(t.kwh, 1)}<small>kWh</small></b></div>
@@ -1045,15 +1241,17 @@ function tabLog(cab) {
 
 /* ---------- Điều khiển tập trung ---------- */
 function viewControl() {
-  const cabs = App.visibleCabs().filter(c => !App.area || c.cfg.area === App.area).sort((a, b) => a.cfg.id.localeCompare(b.cfg.id));
+  if (!LG.ready || !App.inited) return gisLoading();
+  const cabs = ctlFiltered().sort((a, b) => a.cfg.id.localeCompare(b.cfg.id));
   const allSel = cabs.length && cabs.every(c => App.sel.has(c.cfg.key));
   const nSel = [...App.sel].filter(k => App.cabs[k] && App.visibleCabs().includes(App.cabs[k])).length;
-  return `${ctlTabs('hang-loat')}<div class="row" style="margin-bottom:10px"><span class="grow sub">Chọn tủ, chọn kênh, rồi bật/tắt cùng lúc.</span>${areaSelect()}</div>
+  return `${ctlTabs('hang-loat')}${ctlSearch('ctlQ2')}<p class="sub">Lọc theo quận / ô tìm, chọn tủ, chọn kênh rồi bật/tắt cùng lúc. "Chọn tất cả" áp dụng cho mọi tủ đang lọc.</p>
     <div class="panel">
       <label class="ctl-row" style="padding-top:0"><input type="checkbox" data-act="sel-all" ${allSel ? 'checked' : ''}><span class="grow"><b>Chọn tất cả (${cabs.length} tủ)</b><span class="sub" style="display:block">Bấm nút K để bật/tắt riêng từng kênh</span></span></label>
-      ${cabs.map(c => `<div class="ctl-row"><input type="checkbox" data-act="sel" data-key="${esc(c.cfg.key)}" ${App.sel.has(c.cfg.key) ? 'checked' : ''} aria-label="Chọn ${esc(c.cfg.id)}">
+      ${cabs.slice(0, 80).map(c => `<div class="ctl-row"><input type="checkbox" data-act="sel" data-key="${esc(c.cfg.key)}" ${App.sel.has(c.cfg.key) ? 'checked' : ''} aria-label="Chọn ${esc(c.cfg.id)}">
           <div class="grow"><span class="dot ${({ok: 'ok', warn: 'warn', bad: 'bad', off: ''})[App.cabState(c)]}"></span> <a href="#/tu/${encodeURIComponent(c.cfg.key)}/vao-ra"><b>${esc(c.cfg.id)}</b></a> <span class="sub">${esc(c.cfg.name)} · ${modeInfo(c.tele).txt}</span>
           ${lampsHtml(c, true)}</div></div>`).join('')}
+      ${cabs.length > 80 ? `<div class="sub" style="padding:8px 0">… và ${cabs.length - 80} tủ khác (vẫn được tính khi "Chọn tất cả").</div>` : ''}
     </div>
     <div class="sticky-bar"><div class="row">
       <b class="grow">Đã chọn ${nSel} tủ</b>
@@ -1100,15 +1298,16 @@ function viewAlerts() {
     }).join('') || '<div class="empty">Không có sự cố ở mục này.</div>'}</div>`;
 }
 function incWhere(x) {
+  if (!LG.ready) return '';
   const parts = [];
-  Object.entries(x.est || {}).forEach(([rid, e]) => { const r = ROUTES[rid]; if (r && (x.code === 'CAT_CAP' || x.code === 'MAT_DIEN_TUYEN')) parts.push(e > 0 ? `${rid} đứt sau cột #${e} (≈ ${r.distM[e - 1]}–${r.distM[Math.min(r.n - 1, e)]} m từ tủ)` : `${rid} đứt trước cột #1 (≈ ${r.distM[0]} m)`); });
-  if (x.mark && ROUTES[x.mark.route]) parts.push(`📍 đã ghim ${x.mark.kind === 'post' ? 'tại' : 'sau'} cột #${x.mark.idx + 1} ${x.mark.route} (≈ ${ROUTES[x.mark.route].distM[x.mark.idx]} m)`);
+  if (x.cand && x.cand.length && (x.code === 'CAT_CAP' || x.code === 'KHONG_SANG')) parts.push(`nghi đứt ${LG.where(x.cand[0])}${x.cand.length > 1 ? ` (+${x.cand.length - 1} vị trí khác cùng mức dòng)` : ''}${x.lost ? ` · thiếu ${x.lost} A` : ''}`);
+  if (x.mark && x.mark.pole !== undefined) parts.push(`📍 đã ghim ${x.mark.kind === 'post' ? 'tại trụ ' + LG.poleName(x.mark.pole) : 'trước trụ ' + LG.poleName(x.mark.pole)} (≈ ${Math.round(LG.PD[x.mark.pole])} m theo cáp)`);
   return parts.length ? `<div class="sub" style="margin-top:6px;color:var(--ink)">📌 Vị trí: ${esc(parts.join(' · '))}</div>` : '';
 }
 function incMapBtn(x) {
-  const rid = (x.mark && x.mark.route) || x.phases.find(p => ROUTES[p]);
-  if (rid) { const idx = x.mark && x.mark.route === rid ? x.mark.idx : Math.max(0, ((x.est || {})[rid] ?? 1) - 1); return `<a class="btn sm" href="#/ban-do/${rid}/${idx}">🗺️ Bản đồ</a>`; }
-  return NET_CAB[x.tu] ? `<a class="btn sm" href="#/ban-do">🗺️ Bản đồ</a>` : '';
+  const p = x.mark && x.mark.pole !== undefined ? x.mark.pole : (x.cand || [])[0];
+  if (p !== undefined && p !== null) return `<a class="btn sm" href="#/ban-do/p/${p}">🗺️ Bản đồ</a>`;
+  const c = App.cabs[x.cab]; return c && c.cfg.gis !== undefined ? `<a class="btn sm" href="#/ban-do/t/${c.cfg.gis}">🗺️ Bản đồ</a>` : '';
 }
 function zaloText(x) {
   const info = ALARM[x.code], cab = App.cabs[x.cab], t = cab?.tele || {};
@@ -1156,15 +1355,6 @@ function applySimFault(d, k, on) {
   else if (k === 'offline') d.setOffline(on);
   else if (k in d.f) d.f[k] = on;
 }
-// Lỗi trên tuyến: cắt cáp sau cột, hỏng bóng, xe tông cột (ngắn mạch → nhảy CB nhánh)
-function applyRouteFault(rid, kind, idx) {
-  const r = ROUTES[rid], d = App.devices[r.cab], rs = d.routes[rid];
-  idx = Math.max(0, Math.min(r.n - 1, idx));
-  if (kind === 'cut') rs.cut = Math.min(r.n - 1, idx + 1);
-  if (kind === 'lamp') rs.fails.add(idx);
-  if (kind === 'crash') rs.down = idx;
-  if (kind === 'clear') { rs.cut = null; rs.fails.clear(); rs.down = null; rs.cb = true; }
-}
 function viewSettings() {
   const s = App.settings, mq = s.mq, d = App.devices[App.simCab];
   const mqTxt = {off: 'Chưa kết nối', loading: 'Đang tải thư viện…', connecting: 'Đang kết nối…', on: `Đã kết nối · nghe ${App.root()}/tu/+/…`, err: 'Lỗi kết nối', retry: 'Mất kết nối broker, đang thử lại…'}[App.mqState];
@@ -1190,29 +1380,35 @@ function viewSettings() {
       <button class="btn" data-act="teams">Lưu tổ đội</button>
     </div>
     <div class="panel"><h2>Danh sách tủ</h2>
-      ${App.cabCfg.map(c => `<div class="io"><div class="grow"><b>${esc(c.id)}</b> · ${esc(c.name)} <span class="sub">· ${esc(c.area)} · ${esc(c.team)} · ${c.source === 'sim' ? 'demo' : 'thật'}</span></div>
+      <p class="sub">${LG.ready ? LG.cabs.length + ' tủ lấy tự động từ LIGHTING-GIS. Dưới đây là tủ thật đã thêm tay.' : ''}</p>
+      ${App.cabCfg.filter(c => c.source !== 'sim').map(c => `<div class="io"><div class="grow"><b>${esc(c.id)}</b> · ${esc(c.name)} <span class="sub">· ${esc(c.area)} · ${esc(c.team)} · ${c.source === 'sim' ? 'demo' : 'thật'}</span></div>
         <button class="btn sm" data-act="cab-edit" data-key="${esc(c.key)}">Sửa</button>${c.source !== 'sim' ? `<button class="btn sm danger" data-act="cab-del" data-key="${esc(c.key)}">Xoá</button>` : ''}</div>`).join('')}
       <div class="row" style="margin-top:10px"><input id="newCab" class="in" placeholder="Mã tủ thật, VD TU-101" style="width:190px" autocomplete="off"><button class="btn" data-act="cab-add">+ Thêm tủ thật</button></div>
       <p class="sub">Tủ thật gửi bản tin lên broker sẽ tự xuất hiện; thêm trước để đặt tên, khu vực, tổ phụ trách.</p>
     </div>
   </div><div>
     <div class="panel"><h2>Giả lập sự cố (Demo)</h2>
-      <div class="two"><div class="field"><label for="simCab">Tủ</label><select id="simCab" data-act="sim-cab">${SAMPLE.map(m => `<option value="${m.id}"${m.id === App.simCab ? ' selected' : ''}>${m.id} – ${esc(m.name)}</option>`).join('')}</select></div>
-        <div class="field"><label for="speed">Tốc độ giờ mô phỏng</label><select id="speed" data-act="speed">${[1, 60, 600].map(v => `<option value="${v}"${Clock.speed === v ? ' selected' : ''}>${v}× ${v === 1 ? '(thời gian thực)' : v === 60 ? '(1 giây = 1 phút)' : '(1 giây = 10 phút)'}</option>`).join('')}</select></div></div>
-      <h3>Lỗi tại tủ</h3>
-      <div class="faults">${FAULTS.map(([k, n]) => `<button class="btn${d && simFaultOn(d, k) ? ' on' : ''}" data-act="fault" data-val="${k}">${n}</button>`).join('')}</div>
-      <h3>Lỗi trên tuyến</h3>
-      ${(() => { const rs = NET_CAB[App.simCab].routes, rid = rs.some(r => r.id === App.simRoute) ? App.simRoute : rs[0].id, r = ROUTES[rid], st = d.routes[rid];
-        return `<div class="two"><div class="field"><label for="simRoute">Tuyến</label><select id="simRoute" data-act="sim-route">${rs.map(x => `<option value="${x.id}"${x.id === rid ? ' selected' : ''}>${x.id} · ${esc(x.name)} (${x.n} cột)</option>`).join('')}</select></div>
-          <div class="field"><label for="simPost">Cột số (1–${r.n})</label><input id="simPost" type="number" min="1" max="${r.n}" value="${Math.min(r.n, App.simPost)}"></div></div>
-        <div class="faults"><button class="btn${st.cut !== null ? ' on' : ''}" data-act="rfault" data-val="cut">✂️ Cắt cáp sau cột</button><button class="btn${st.fails.size ? ' on' : ''}" data-act="rfault" data-val="lamp">💡 Hỏng bóng tại cột</button>
-          <button class="btn${st.down !== null ? ' on' : ''}" data-act="rfault" data-val="crash">💥 Xe tông đổ cột</button><button class="btn" data-act="rfault" data-val="clear">✅ Sửa xong tuyến</button></div>`; })()}
-      <div class="btns"><button class="btn" data-act="restore">✅ Khôi phục cả tủ</button>
+      ${LG.ready && App.inited ? (() => { const g = LG.byId[App.simCab], n = g.order ? g.order.length : 0, k = Math.min(n, Math.max(1, App.simPost)), pi = n ? g.order[k - 1] : -1;
+        return `<div class="two"><div class="field"><label for="simFind">Tủ (gõ mã hoặc tên để tìm)</label><input id="simFind" list="simList" value="${esc(App.simCab)}" autocomplete="off"><datalist id="simList">${LG.cabs.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('')}</datalist></div>
+          <div class="field"><label for="speed">Tốc độ giờ mô phỏng</label><select id="speed" data-act="speed">${[1, 60, 600].map(v => `<option value="${v}"${Clock.speed === v ? ' selected' : ''}>${v}× ${v === 1 ? '(thời gian thực)' : v === 60 ? '(1 giây = 1 phút)' : '(1 giây = 10 phút)'}</option>`).join('')}</select></div></div>
+        <div class="sub">${esc(g.name)} · ${esc(LG.QNAME[g.q])} · ${n} trụ · dòng chuẩn ≈ ${g.exp.toFixed(1)} A</div>
+        <h3>Lỗi tại tủ</h3>
+        <div class="faults">${FAULTS.map(([kk, nm]) => `<button class="btn${d && simFaultOn(d, kk) ? ' on' : ''}" data-act="fault" data-val="${kk}">${nm}</button>`).join('')}</div>
+        <h3>Lỗi trên mạng cáp</h3>
+        ${n ? `<div class="two"><div class="field"><label for="simPost">Trụ thứ (theo cây cáp từ tủ, 1–${n})</label><input id="simPost" type="number" min="1" max="${n}" value="${k}"></div>
+          <div class="field"><label>Trụ được chọn</label><div class="sub" style="padding-top:8px"><b>${esc(LG.poleName(pi))}</b> · ${esc(LG.street(pi))} · ≈ ${Math.round(LG.PD[pi])} m · nhánh sau ${LG.PSUB[pi].toFixed(1)} A</div></div></div>
+        <div class="faults"><button class="btn${d.cuts.size ? ' on' : ''}" data-act="gfault2" data-val="cut">✂️ Cắt cáp trước trụ</button><button class="btn${d.fails.size ? ' on' : ''}" data-act="gfault2" data-val="lamp">💡 Hỏng bóng tại trụ</button>
+          <button class="btn${d.down !== null ? ' on' : ''}" data-act="gfault2" data-val="crash">💥 Xe tông đổ trụ</button><button class="btn" data-act="gfault2" data-val="clearAll">✅ Sửa xong cả tủ</button></div>` : '<p class="sub">Tủ này chưa có trụ trong LIGHTING-GIS.</p>'}
+        <p class="sub">Cách nhanh hơn: chạm vào trụ trên <a href="#/ban-do">Bản đồ</a> → 🧪 Giả lập.</p>`; })() : '<p class="sub">Đang tải dữ liệu LIGHTING-GIS…</p>'}
+      <div class="btns"><button class="btn" data-act="restore">✅ Khôi phục tủ này</button>
         <button class="btn${App.random ? ' on' : ''}" data-act="random">🎲 Sự cố ngẫu nhiên: ${App.random ? 'BẬT' : 'TẮT'}</button></div>
       <h3>Nhảy giờ</h3>
-      <div class="btns" style="margin-top:0">${[['17:59:30', '17:59'], ['22:59:30', '22:59 (cắt nửa đêm)'], ['05:29:30', '05:29'], ['12:00:00', '12:00']].map(([v, n]) => `<button class="btn sm" data-act="jump" data-val="${v}">${n}</button>`).join('')}</div>
-      <p class="sub">Thử: chọn TU-01 › R1 › cột 4 › "Cắt cáp sau cột" rồi mở <a href="#/ban-do">Bản đồ 3D</a> hoặc <a href="#/scada">SCADA</a> – vùng nghi đứt hiện đúng đoạn sau cột #4.</p>
+      <div class="btns" style="margin-top:0">${[['17:59:30', '17:59'], ['22:59:30', '22:59 (cắt nửa đêm)'], ['05:29:30', '05:29'], ['12:00:00', '12:00']].map(([v, nm]) => `<button class="btn sm" data-act="jump" data-val="${v}">${nm}</button>`).join('')}</div>
     </div>
+    <div class="panel"><h2>Nguồn dữ liệu LIGHTING-GIS</h2>
+      ${LG.ready ? `<p class="sub">Đọc trực tiếp từ app LIGHTING-GIS (${esc(LG.src || '')}): <b>${LG.cabs.length}</b> tủ có toạ độ · <b>${LG.n.toLocaleString('vi-VN')}</b> trụ · <b>${LG.SA.length.toLocaleString('vi-VN')}</b> đoạn cáp · bản đồ nền ${LG.base.edge.length.toLocaleString('vi-VN')} mép đường, ${LG.texts.length.toLocaleString('vi-VN')} tên đường (VN-2000). Sửa dữ liệu bên LIGHTING-GIS thì app này tự dùng bản mới.</p>
+        <p class="sub">Mã tủ dùng cho firmware (CABINET_ID) là mã KNTT của tủ trong LIGHTING-GIS (vd. ${esc((LG.cabs.find(c => !/^TU\d/.test(c.id)) || LG.cabs[0]).id)}); tủ chưa có mã dùng dạng TU&lt;số&gt;. Tủ thật gửi bản tin với mã này sẽ tự gắn lên bản đồ.</p>` : `<p class="sub">${esc(LG.err || LG.step || 'Đang tải…')}</p>`}
+      <button class="btn" data-act="gis-retry">🔄 Tải lại dữ liệu</button></div>
     <div class="panel"><div class="row"><h2 class="grow">Bản tin MQTT</h2><button class="btn sm" data-act="console-clear">Xoá</button></div>
       <p class="sub">Bản tin trao đổi giữa tủ và app: đo lường, cảnh báo (đỏ), lệnh (tím), phản hồi lệnh (vàng).</p>
       <div class="console" id="console"></div></div>
@@ -1299,7 +1495,7 @@ function barChart(id, labels, values) {
    ===================================================================== */
 function route() {
   const p = location.hash.replace(/^#\/?/, '').split('/').map(decodeURIComponent);
-  if (!p[0] || p[0] === 'ban-do') return {r: 'ban-do', nav: 'ban-do', live: false, focus: p[1] ? {route: p[1], idx: +p[2] || 0} : null};
+  if (!p[0] || p[0] === 'ban-do') return {r: 'ban-do', nav: 'ban-do', live: false, focus: p[1] === 'p' ? {pole: +p[2]} : p[1] === 't' ? {cab: +p[2]} : null};
   if (p[0] === 'scada') return {r: 'scada', nav: 'scada', live: true};
   if (p[0] === 'tu' && p[1]) { const tab = TABS.some(t => t[0] === p[2]) ? p[2] : 'do-luong'; return {r: 'tu', nav: 'dieu-khien', key: p[1], tab, seg: p[3], live: tab !== 'lich' && tab !== '3d'}; }
   if (p[0] === 'dieu-khien' || p[0] === 'tu') return {r: p[1] === 'hang-loat' ? 'hang-loat' : 'dieu-khien', nav: 'dieu-khien', live: true};
@@ -1325,7 +1521,7 @@ function render(force) {
     : R.r === 'tu' ? viewCab(R.key, R.tab) : R.r === 'canh-bao' ? viewAlerts() : viewSettings();
   $('#main').innerHTML = html;
   if (changed) { window.scrollTo(0, 0); lastRouteKey = rk; }
-  if (R.r === 'ban-do') G3.mount(changed ? R.focus : null);
+  if (R.r === 'ban-do' && LG.ready) G3.mount(changed ? R.focus : null);
   if (R.r === 'tu' && R.key && App.cabs[R.key]) {
     const cab = App.cabs[R.key], colors = [cssVar('--pa'), cssVar('--pb'), cssVar('--pc')];
     if (R.tab === 'do-luong') {
@@ -1350,7 +1546,7 @@ document.addEventListener('click', async e => {
   const a = el.dataset.act, key = el.dataset.key, val = el.dataset.val;
   if (el.tagName === 'INPUT' && el.type === 'checkbox') {
     if (a === 'sel') { if (el.checked) App.sel.add(key); else App.sel.delete(key); render(true); }
-    if (a === 'sel-all') { App.visibleCabs().filter(c => !App.area || c.cfg.area === App.area).forEach(c => { if (el.checked) App.sel.add(c.cfg.key); else App.sel.delete(c.cfg.key); }); render(true); }
+    if (a === 'sel-all') { ctlFiltered().forEach(c => { if (el.checked) App.sel.add(c.cfg.key); else App.sel.delete(c.cfg.key); }); render(true); }
     if (a === 'demo') { App.settings.demo = el.checked; App.saveSettings(); if (el.checked) Object.values(App.devices).forEach(d => d.telemetry()); render(true); }
     return;
   }
@@ -1414,42 +1610,49 @@ document.addEventListener('click', async e => {
     }
     case 'cab-del': if (await confirmAction('Xoá tủ khỏi danh sách?', esc(key))) { App.cabCfg = App.cabCfg.filter(c => c.key !== key); delete App.cabs[key]; App.sel.delete(key); App.saveCabs(); render(true); } break;
     case 'fault': { const d = App.devices[App.simCab]; applySimFault(d, val, !simFaultOn(d, val)); render(true); break; }
-    case 'restore': { const d = App.devices[App.simCab]; FAULTS.forEach(([k]) => { if (simFaultOn(d, k)) applySimFault(d, k, false); }); NET_CAB[App.simCab].routes.forEach(r => applyRouteFault(r.id, 'clear')); toast('Đã khôi phục ' + App.simCab); render(true); break; }
-    case 'rfault': {
-      const rid = $('#simRoute').value, n = +$('#simPost').value || 1; App.simRoute = rid; App.simPost = n;
-      applyRouteFault(rid, val, n - 1);
-      toast({cut: `✂️ Đã cắt cáp ${rid} sau cột #${n}`, lamp: `💡 Hỏng bóng cột #${n} ${rid}`, crash: `💥 Xe tông đổ cột #${n} ${rid}`, clear: `✅ Tuyến ${rid} đã sửa xong (CB nhánh đóng lại)`}[val]);
+    case 'restore': { const d = App.devices[App.simCab]; if (!d) break; FAULTS.forEach(([k]) => { if (simFaultOn(d, k)) applySimFault(d, k, false); }); d.cuts.clear(); d.fails.clear(); d.down = null; d.f.cbTrip = false; d.burst = 3; toast('Đã khôi phục ' + App.simCab); render(true); break; }
+    case 'gfault2': {
+      const g = LG.byId[App.simCab]; if (!g || !g.order) break;
+      const n = Math.min(g.order.length, Math.max(1, +$('#simPost').value || 1)); App.simPost = n;
+      const i = g.order[n - 1];
+      applyPoleFault(i, val);
+      toast({cut: `✂️ Đã cắt cáp trước trụ ${LG.poleName(i)}`, lamp: `💡 Hỏng bóng trụ ${LG.poleName(i)}`, crash: `💥 Xe tông đổ trụ ${LG.poleName(i)}`, clearAll: `✅ ${g.id}: đã sửa xong (CB tổng vẫn phải đóng lại nếu đã nhảy)`}[val]);
       render(true); break;
     }
-    case 'm-home': G3.home(); break;
+    case 'g-fault': {
+      const i = +el.dataset.pole; applyPoleFault(i, val);
+      toast({cut: `✂️ Giả lập: cắt cáp trước trụ ${LG.poleName(i)}`, lamp: `💡 Giả lập: hỏng bóng trụ ${LG.poleName(i)}`, crash: `💥 Giả lập: xe tông đổ trụ ${LG.poleName(i)}`, clear: `✅ Đã sửa xong tại trụ ${LG.poleName(i)}`}[val]);
+      break;
+    }
+    case 'gis-retry': LG.err = null; startGis(); render(true); break;
+    case 'm-q': case 'sc-q': case 'c-q': {
+      Filt.q = +el.dataset.q; App.ctlN = 24;
+      if (a === 'm-q' && G3.R) G3.fitCabs(Filt.q < 0 ? LG.cabs : LG.cabs.filter(c => c.q === Filt.q));
+      if (a === 'm-q') { document.querySelectorAll('.qchips button').forEach(b => b.classList.toggle('on', +b.dataset.q === Filt.q)); } else render(true);
+      break;
+    }
+    case 'm-fit': G3.fitCabs(Filt.q < 0 ? LG.cabs : LG.cabs.filter(c => c.q === Filt.q)); break;
+    case 'm-3d': G3.setMode3d(!G3.mode3d); el.textContent = G3.mode3d ? '🗺️ 2D' : '🧊 3D'; el.classList.toggle('on', G3.mode3d); break;
+    case 'm-theme': G3.theme = G3.theme === 'dark' ? 'light' : 'dark'; store.set('gst3.mapTheme', G3.theme); G3.applyTheme(); el.textContent = G3.theme === 'dark' ? '☀️ Nền sáng' : '🌙 Nền tối'; break;
+    case 'sc-sel': App.scSel = +el.dataset.t; render(true); break;
+    case 'sc-open': App.scSel = +el.dataset.t; location.hash = '#/scada'; break;
+    case 'ctl-more': App.ctlN += 48; render(true); break;
     case 'm-flow': G3.flow = !G3.flow; el.classList.toggle('on', G3.flow); break;
     case 'm-unsel': G3.select(null); break;
     case 'm-focus': G3.focusSel(); break;
-    case 'm-mark': markLocation(el.dataset.route, +el.dataset.idx, el.dataset.kind); G3.tick(); break;
+    case 'm-mark': markLocation(+el.dataset.pole, el.dataset.kind); G3.tick(); break;
     case 'm-goto': {
-      const r = el.dataset.route, i = +el.dataset.idx || 0;
       closeModal();
-      if (route().r !== 'ban-do') location.hash = `#/ban-do/${r}/${i}`; else { G3.select({kind: 'post', route: r, idx: i}); G3.focusSel(); }
+      const f = el.dataset.pole !== undefined ? {pole: +el.dataset.pole} : {cab: +el.dataset.cab};
+      const box = document.getElementById('mapRes'); if (box) box.innerHTML = '';
+      if (route().r !== 'ban-do') location.hash = f.pole !== undefined ? `#/ban-do/p/${f.pole}` : `#/ban-do/t/${f.cab}`; else G3.focusTarget(f);
       break;
-    }
-    case 'm-cab': { const id = el.dataset.id; if (NET_CAB[id]) { G3.select({kind: 'cab', id}); G3.focusSel(); } break; }
-    case 'sc-tba': {
-      const g = gridState();
-      openModal(`<h2>① ${esc(NET.tba.name)}</h2><div class="sub" style="font-size:14px">Nguồn: <b>${g === 'lost' ? 'MẤT ĐIỆN – cả khu vực mất áp' : g === 'ok' ? 'có điện' : 'chưa có dữ liệu'}</b></div>
-        ${g === 'lost' ? '<p class="sub">Cả các tủ cùng mất áp → sự cố từ lưới/TBA. Báo điện lực khu vực, không cần cử tổ đi từng tủ.</p>' : ''}<div class="btns"><button class="btn" id="mNo">Đóng</button></div>`);
-      $('#mNo').onclick = closeModal; break;
     }
     case 'sc-k': if (key) scadaK(key, +el.dataset.ch); else toast('Tủ chưa kết nối'); break;
     case 'sc-cb': {
       const cab = App.cabs[key]; if (!cab) { toast('Tủ chưa kết nối'); break; }
       if ((cab.tele?.di || [])[DI.CB] !== 0) { toast(`${cab.cfg.id}: CB tổng đang đóng`); break; }
       cmdSimple(key, 'cb 1', 'Đóng lại CB tổng (CB có motor)', true); break;
-    }
-    case 'sc-rcb': {
-      const cab = App.cabs[key]; if (!cab) { toast('Tủ chưa kết nối'); break; }
-      const rid = el.dataset.route;
-      if ((cab.tele?.rcb || {})[rid] !== 0) { toast(`CB nhánh ${rid} đang đóng`); break; }
-      cmdSimple(key, `rcb ${rid} 1`, `Đóng lại CB nhánh ${rid} – chỉ đóng khi tổ đã xử lý xong`, true); break;
     }
     case 'random': App.random = !App.random; App.randomTimer = 3; render(true); break;
     case 'jump': Clock.jump(val); toast('Đã nhảy tới ' + val.slice(0, 5)); break;
@@ -1468,18 +1671,28 @@ document.addEventListener('click', async e => {
       break;
     case 'reset-all':
       if (await confirmAction('Khôi phục cài đặt gốc?', 'Xoá tủ đã thêm, sự cố, điện năng, PIN, cài đặt kết nối trên máy này.', 'Khôi phục')) {
-        ['gst2.settings', 'gst2.cabs', 'gst2.inc', 'gst2.seq', 'gst2.energy'].forEach(k => { try { localStorage.removeItem(k); } catch (err) { /* bỏ qua */ } });
+        ['gst3.settings', 'gst3.cabs', 'gst3.inc', 'gst3.seq', 'gst3.energy'].forEach(k => { try { localStorage.removeItem(k); } catch (err) { /* bỏ qua */ } });
         location.reload();
       }
       break;
+  }
+});
+// Ô tìm: lọc khi gõ (giữ con trỏ trong ô sau khi vẽ lại)
+let findT;
+document.addEventListener('input', e => {
+  const el = e.target;
+  if (el.id === 'mapQ') mapSearch(el.value);
+  if (el.id === 'ctlQ' || el.id === 'ctlQ2' || el.id === 'scQ') {
+    clearTimeout(findT); const id = el.id;
+    findT = setTimeout(() => { Filt.text = el.value; App.ctlN = 24; render(true); const n = document.getElementById(id); if (n) { n.focus(); n.setSelectionRange(n.value.length, n.value.length); } }, 350);
   }
 });
 document.addEventListener('change', e => {
   const el = e.target, a = el.dataset.act;
   if (a === 'area') { App.area = el.value; el.blur(); render(true); }
   if (a === 'bulk-ch') { App.bulkCh = el.value; el.blur(); }
-  if (a === 'sim-cab') { App.simCab = el.value; App.simRoute = NET_CAB[el.value].routes[0].id; el.blur(); render(true); }
-  if (a === 'sim-route') { App.simRoute = el.value; el.blur(); render(true); }
+  if (el.id === 'simFind') { const g = LG.byId[el.value.trim()] || LG.cabs.find(c => unaccent(c.name) === unaccent(el.value)); if (g) { App.simCab = g.id; App.simPost = Math.max(2, Math.round((g.order ? g.order.length : 2) / 2)); el.blur(); render(true); } else toast('Không tìm thấy tủ'); }
+  if (el.id === 'simPost') render(true);
   if (a === 'speed') { Clock.speed = +el.value; el.blur(); }
   if (a === 'inc-team') {
     const x = App.incidents.find(i => i.no === el.dataset.no); if (!x) return;
@@ -1526,7 +1739,7 @@ function updateHeader() {
   else if (App.mq) { dot.className = 'dot warn'; txt.textContent = 'MQTT…'; }
   else { dot.className = 'dot' + (App.settings.demo ? ' ok' : ''); txt.textContent = App.settings.demo ? 'Demo' : 'Ngoại tuyến'; }
   $('#clockChip').style.display = App.settings.demo ? '' : 'none';
-  $('#hsub').textContent = App.settings.demo ? 'Bản đồ 3D · SCADA · Điều khiển · Demo' : 'Bản đồ 3D · SCADA · Điều khiển';
+  $('#hsub').textContent = App.settings.demo ? 'Bản đồ CAD · SCADA · Điều khiển · Demo' : 'Bản đồ CAD · SCADA · Điều khiển';
 }
 
 /* =====================================================================
@@ -1539,15 +1752,14 @@ function loop() {
     const d = new Date(Clock.ms);
     $('#simTime').textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
     $('#dayIcon').textContent = inWindow(Clock.min(), 1080, 330) ? '🌙' : '☀️';
-    Object.values(App.devices).forEach(dev => dev.step());
+    if (App.inited) Object.values(App.devices).forEach(dev => dev.step());
     if (App.random && --App.randomTimer <= 0) {
       App.randomTimer = Math.round(rnd(25, 45));
-      const devs = Object.values(App.devices), dev = devs[Math.floor(Math.random() * devs.length)];
-      const pool = ['cut', 'cut', 'lamp', 'crash', 'door', 'offline', 'kfail1', 'cbTrip'];
-      const k = pool[Math.floor(Math.random() * pool.length)];
+      const devs = Object.values(App.devices).filter(d => d.cab.order && d.cab.order.length > 6), dev = pick(devs);
+      const k = pick(['cut', 'cut', 'cut', 'lamp', 'crash', 'door', 'offline', 'kfail1', 'cbTrip']);
       if (['cut', 'lamp', 'crash'].includes(k)) {
-        const r = pick(dev.net.routes); applyRouteFault(r.id, k, Math.floor(rnd(1, r.n - 2)));
-        setTimeout(() => applyRouteFault(r.id, 'clear'), rnd(60, 120) * 1000);
+        const i2 = dev.cab.order[Math.floor(rnd(1, dev.cab.order.length - 1))]; applyPoleFault(i2, k);
+        setTimeout(() => { applyPoleFault(i2, 'clear'); dev.f.cbTrip = false; }, rnd(60, 120) * 1000);
       } else { applySimFault(dev, k, true); setTimeout(() => applySimFault(dev, k, false), rnd(40, 90) * 1000); }
     }
   }
@@ -2231,55 +2443,64 @@ function tab3D(cab) {
 
 
 /* =====================================================================
-   13. BẢN ĐỒ 3D + SCADA – giám sát toàn mạng từ số liệu đo được
+   13. BẢN ĐỒ NỀN CAD (LIGHTING-GIS) 2D/3D + SCADA – giám sát từ số đo
    ===================================================================== */
-// Tủ đang chạy cho một mã trong NET: ưu tiên tủ thật (MQTT), nếu không thì tủ Demo
-function netCab(id) {
-  const real = App.cabs['mqtt:' + id];
+const MAPC = {
+  dark: {bg: '#151a18', edge: '#56605a', tim: '#2e3632', river: '#3a6a8f', ward: '#e3a066', road: '#cdb98f', halo: '#151a18', ngam: '#f062f5', noi: '#2fd6ee', dead: '#3a423e', pole: '#9aa39d'},
+  light: {bg: '#eef0ea', edge: '#9aa39d', tim: '#c9cfc8', river: '#7fb3d9', ward: '#b8641c', road: '#6b5a3a', halo: '#ffffff', ngam: '#c021c9', noi: '#0896ab', dead: '#c3c8c1', pole: '#56605a'}
+};
+// Tủ đang chạy cho tủ GIS t: ưu tiên tủ thật (MQTT) có số liệu, nếu không thì tủ Demo
+function gisCab(t) {
+  const keys = App.byGis[t] || [];
+  let sim = null, real = null;
+  for (const k of keys) { const c = App.cabs[k]; if (!c) continue; if (c.cfg.source === 'sim') sim = c; else if (!real || c.tele) real = c; }
   if (real && real.tele) return real;
-  return App.settings.demo ? App.cabs['sim:' + id] : real || null;
+  return App.settings.demo ? sim : real;
 }
-// Ước tính trạng thái tuyến từ dòng đo được (tủ không đo từng bóng)
-function routeEst(cab, r) {
-  const t = cab && cab.tele;
-  if (!t || !cab.online) return {energ: false, lit: 0, tot: null, rcb: true, known: false};
-  const rcb = t.rcb ? t.rcb[r.id] !== 0 : true;
-  const closed = FB_OF_DO[r.ch] >= 0 ? (t.di || [])[FB_OF_DO[r.ch]] === 1 : (t.do || [])[r.ch] === 1;
-  const vok = (t.v || []).some(v => v !== null && v >= CFG.V_LOST);
-  const energ = vok && closed && rcb;
-  const ri = t.r && t.r[r.id];
-  if (!ri) return {energ, lit: energ ? r.n : 0, tot: null, rcb, known: true};
-  const tot = ri.reduce((a, b) => a + (b || 0), 0), lost = Math.round((r.n * LAMP_A - tot) / LAMP_A);
-  const lit = !energ || tot < 0.2 ? 0 : lost >= 3 ? Math.max(0, r.n - lost) : r.n;
-  return {energ, lit, tot, rcb, lost, known: true};
+function cabStatus(t) { const c = gisCab(t); return c ? App.cabState(c) : 'none'; }
+const STC = {ok: '#34d399', warn: '#fbbf24', bad: '#f87171', off: '#7d8996', none: '#59636e'};
+// Trạng thái ước tính của tủ trên bản đồ (từ số đo, không phải "nhìn thấy" hiện trường)
+function cabEst(t) {
+  const c = gisCab(t), g = LG.byT[t];
+  if (!c || !c.tele || !c.online) return {known: false, on: false, cut: null};
+  const tl = c.tele, di = tl.di || [];
+  const closed = FB_OF_DO[0] >= 0 ? di[FB_OF_DO[0]] === 1 : (tl.do || [])[0] === 1;
+  const on = closed && di[DI.CB] !== 0 && (tl.v || []).some(v => v !== null && v >= CFG.V_LOST);
+  const ks = c.active.KHONG_SANG, cc = c.active.CAT_CAP;
+  return {known: true, on: on && !ks, cut: cc && cc.cand && cc.cand.length ? cc.cand[0] : null, cand: cc ? cc.cand || [] : [], allDead: !!ks, g};
 }
-function gridState() {
-  const cs = NET.cabs.map(c => netCab(c.id)).filter(c => c && c.tele && c.online);
-  if (!cs.length) return 'unknown';
-  return cs.every(c => (c.tele.v || []).every(v => v === null || v < CFG.V_LOST)) ? 'lost' : 'ok';
-}
-function routeAlarm(cab, rid) {
-  if (!cab) return null;
-  return ['CAT_CAP', 'MAT_DIEN_TUYEN', 'CB_NHANH', 'HONG_BONG'].map(c => cab.active[c + rid]).find(Boolean) || null;
-}
-// Đánh dấu vị trí trên bản đồ → gắn vào sự cố đang mở của tuyến (hoặc tạo ghi nhận mới)
-function markLocation(routeId, idx, kind) {
-  const r = ROUTES[routeId], cab = netCab(r.cab); if (!cab) { toast('Tủ chưa kết nối'); return; }
-  let inc = App.incidents.find(x => x.cab === cab.cfg.key && x.status !== 'done' && x.phases.includes(routeId));
-  const where = `${kind === 'post' ? 'tại' : 'sau'} cột #${idx + 1} ${routeId} (≈ ${r.distM[idx]} m từ ${r.cab})`;
+function inSubtree(cab, root) { const s = new Set([root]); for (const i of cab.order) if (s.has(LG.PP[i])) s.add(i); return s; }
+// Đánh dấu vị trí trên bản đồ → gắn vào sự cố đang mở của tủ (hoặc tạo ghi nhận mới)
+function markLocation(i, kind) {
+  const t = LG.PT[i], cab = gisCab(t); if (!cab) { toast('Tủ chưa kết nối'); return; }
+  let inc = App.incidents.find(x => x.cab === cab.cfg.key && x.status !== 'done' && x.code !== 'MAT_KET_NOI');
+  const where = `${kind === 'post' ? 'tại trụ ' + LG.poleName(i) : 'đứt cáp ' + LG.where(i)}`;
   if (!inc) {
-    App.onAlarm(cab, {code: 'GHI_NHAN', phase: routeId, state: 'on', msg: `Đánh dấu từ bản đồ: sự cố ${where}`, ts: 0});
-    delete cab.active['GHI_NHAN' + routeId];
-    inc = App.incidents.find(x => x.cab === cab.cfg.key && x.status !== 'done' && x.code === 'GHI_NHAN' && x.phases.includes(routeId));
+    App.onAlarm(cab, {code: 'GHI_NHAN', phase: '-', state: 'on', msg: `Đánh dấu từ bản đồ: ${where}`, ts: 0});
+    delete cab.active.GHI_NHAN;
+    inc = App.incidents.find(x => x.cab === cab.cfg.key && x.status !== 'done' && x.code === 'GHI_NHAN');
   }
-  inc.mark = {route: routeId, idx, kind};
+  inc.mark = {pole: i, kind};
   inc.log.push({t: App.nowFor(cab), s: `📍 Đánh dấu vị trí: ${where}`});
   App.saveInc(); App.incDirty = true;
-  toast(`📍 ${inc.no}: đã đánh dấu ${where}`);
+  toast(`📍 ${inc.no}: đã đánh dấu ${kind === 'post' ? 'trụ ' + LG.poleName(i) : 'đoạn trước trụ ' + LG.poleName(i)}`);
+}
+// Bộ lọc dùng chung: quận + ô tìm
+const Filt = {q: -1, text: ''};
+function cabMatches(g) {
+  if (Filt.q >= 0 && g.q !== Filt.q) return false;
+  if (!Filt.text) return true;
+  const u = unaccent(Filt.text);
+  return unaccent(`${g.id} ${g.name} ${g.addr} ${g.ward} ${g.pe}`).includes(u);
+}
+function unaccent(s) { return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[đĐ]/g, 'd').toLowerCase(); }
+function qChips(act) {
+  return `<div class="qchips">${[-1, 0, 1, 2, 3].map(q => `<button data-act="${act}" data-q="${q}" class="${Filt.q === q ? 'on' : ''}" style="${q >= 0 ? '--qc:' + LG.QC[q] : ''}">${q < 0 ? 'Tất cả' : LG.QSHORT[q]}<small>${q < 0 ? LG.cabs.length : LG.cabs.filter(c => c.q === q).length}</small></button>`).join('')}</div>`;
 }
 
 const G3 = {
-  ok: false, cam: {theta: -0.55, phi: 0.92, r: 78, tx: 0, ty: 0, tz: -8}, goal: null, pts: new Map(), sel: null, flow: true,
+  cam: {theta: 0, phi: 0.001, r: 9000, tx: 7000, tz: 0}, goal: null, pts: new Map(), sel: null, flow: true, mode3d: false,
+  theme: store.get('gst3.mapTheme', 'dark'),
   async mount(focus) {
     if (!document.getElementById('map3d')) return;
     if (!window.THREE) { try { await loadScript('vendor/three.min.js'); } catch (e) { /* thử CDN */ } }
@@ -2287,132 +2508,128 @@ const G3 = {
     const box = document.getElementById('map3d'); if (!box) return;
     if (!window.THREE) { box.innerHTML = '<div class="empty" style="color:#9bb0c3">Không tải được thư viện 3D – kiểm tra mạng.</div>'; return; }
     if (!this.R) this.init();
-    box.innerHTML = ''; box.appendChild(this.R.domElement);
+    box.innerHTML = ''; box.appendChild(this.R.domElement); box.appendChild(this.ov);
     this.resize();
-    if (!this.homed) { this.homed = true; this.home(true); }
-    if (focus && ROUTES[focus.route]) { this.select({kind: 'post', route: focus.route, idx: Math.min(ROUTES[focus.route].n - 1, focus.idx || 0)}); this.focusSel(); }
+    if (!this.homed) { this.homed = true; this.fitCabs(LG.cabs, true); }
+    if (focus) this.focusTarget(focus);
     if (!this.running) { this.running = true; requestAnimationFrame(t => this.frame(t)); }
     this.tick();
   },
   init() {
     const T = THREE;
-    this.R = new T.WebGLRenderer({antialias: true}); this.R.setPixelRatio(Math.min(devicePixelRatio || 1, 2)); this.R.outputEncoding = T.sRGBEncoding;
-    const el = this.R.domElement; el.style.display = 'block'; el.style.width = '100%'; el.style.height = '100%'; el.style.touchAction = 'none';
-    el.setAttribute('aria-label', 'Bản đồ 3D lưới chiếu sáng – kéo để xoay, chụm hai ngón để phóng to');
-    this.cam3 = new T.PerspectiveCamera(38, 1, 0.5, 400);
-    this.sc = new T.Scene(); this.sc.background = new T.Color('#141d27');
-    this.hemi = new T.HemisphereLight(0xcfe3ff, 0x1a2430, 0.7); this.sc.add(this.hemi);
-    this.sun = new T.DirectionalLight(0xffffff, 0.6); this.sun.position.set(-30, 60, 40); this.sc.add(this.sun);
-    this.ray = new T.Raycaster();
-    this.build(); this.bind();
+    this.R = new T.WebGLRenderer({antialias: true}); this.R.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+    const el = this.R.domElement; el.style.cssText = 'display:block;width:100%;height:100%;touch-action:none;position:absolute;inset:0;border-radius:0;background:transparent';
+    el.setAttribute('aria-label', 'Bản đồ nền CAD lưới chiếu sáng – kéo để di chuyển, chụm hai ngón để phóng to');
+    this.ov = document.createElement('canvas'); this.ov.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;background:transparent;border-radius:0';
+    this.cam3 = new T.PerspectiveCamera(40, 1, 1, 120000);
+    this.sc = new T.Scene();
+    this.ray = new T.Raycaster(); this.plane = new T.Plane(new T.Vector3(0, 1, 0), 0);
+    this.build(); this.applyTheme(); this.bind();
   },
-  mat(c, o) { return new THREE.MeshStandardMaterial(Object.assign({color: c, roughness: 0.8, metalness: 0.05}, o || {})); },
-  mesh(geo, c, x, y, z, o, parent) { const m = new THREE.Mesh(geo, this.mat(c, o)); m.position.set(x, y, z); (parent || this.sc).add(m); return m; },
-  tex(w, h, draw) { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; const t = new THREE.CanvasTexture(cv); t.encoding = THREE.sRGBEncoding; const api = {cv, t, draw(...a) { draw(cv.getContext('2d'), w, h, ...a); t.needsUpdate = true; }}; api.draw(); return api; },
   glow() {
     if (this._g) return this._g;
-    this._g = this.tex(64, 64, g => { const r = g.createRadialGradient(32, 32, 0, 32, 32, 32); r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(0.3, 'rgba(255,255,255,.7)'); r.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = r; g.fillRect(0, 0, 64, 64); }).t;
-    return this._g;
+    const cv = document.createElement('canvas'); cv.width = cv.height = 64; const g = cv.getContext('2d');
+    const r = g.createRadialGradient(32, 32, 0, 32, 32, 32); r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(0.3, 'rgba(255,255,255,.7)'); r.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = r; g.fillRect(0, 0, 64, 64);
+    return (this._g = new THREE.CanvasTexture(cv));
   },
-  badge(num, text, color) {
-    const t = this.tex(512, 112, (g, W, H, col, txt) => {
-      g.clearRect(0, 0, W, H);
-      g.fillStyle = 'rgba(12,20,30,.92)'; g.strokeStyle = col || color; g.lineWidth = 5;
-      g.beginPath(); if (g.roundRect) g.roundRect(4, 8, W - 8, H - 16, 18); else g.rect(4, 8, W - 8, H - 16); g.fill(); g.stroke();
-      g.fillStyle = col || color; g.beginPath(); if (g.roundRect) g.roundRect(16, 22, 68, 68, 12); else g.rect(16, 22, 68, 68); g.fill();
-      g.fillStyle = '#06131c'; g.font = '800 46px system-ui'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(num, 50, 58);
-      g.fillStyle = '#e8f4ff'; g.textAlign = 'left'; g.font = '700 40px system-ui'; g.fillText(txt || text, 104, 58);
-    });
-    const s = new THREE.Sprite(new THREE.SpriteMaterial({map: t.t, depthTest: false, transparent: true, sizeAttenuation: false}));
-    s.scale.set(0.105, 0.023, 1); s.renderOrder = 20; s.userData.tex = t; return s;
+  dot() {
+    if (this._d) return this._d;
+    const cv = document.createElement('canvas'); cv.width = cv.height = 32; const g = cv.getContext('2d');
+    g.fillStyle = '#fff'; g.beginPath(); g.arc(16, 16, 13, 0, 7); g.fill();
+    return (this._d = new THREE.CanvasTexture(cv));
+  },
+  // Gộp nhiều polyline thành một LineSegments có chỉ số
+  lines(polys, y) {
+    const T = THREE; let np = 0, ns = 0;
+    for (const p of polys) { const k = p.length / 2; np += k; ns += Math.max(0, k - 1); }
+    const pos = new Float32Array(np * 3), idx = new Uint32Array(ns * 2); let o = 0, q = 0;
+    for (const p of polys) {
+      const base = o / 3, k = p.length / 2;
+      for (let j = 0; j < k; j++) { pos[o++] = p[2 * j]; pos[o++] = y; pos[o++] = -p[2 * j + 1]; }
+      for (let j = 0; j < k - 1; j++) { idx[q++] = base + j; idx[q++] = base + j + 1; }
+    }
+    const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.BufferAttribute(pos, 3)); geo.setIndex(new T.BufferAttribute(idx, 1));
+    const m = new T.LineSegments(geo, new T.LineBasicMaterial({color: 0xffffff})); m.frustumCulled = false; this.sc.add(m); return m;
   },
   build() {
-    const T = THREE, sc = this.sc;
-    const g = this.mesh(new T.PlaneGeometry(130, 90), '#222c38', 0, 0, -8); g.rotation.x = -Math.PI / 2;
-    const grid = new T.GridHelper(130, 65, 0x2c4a60, 0x243545); grid.position.set(0, 0.01, -8); grid.material.transparent = true; grid.material.opacity = 0.55; sc.add(grid);
-    ROADS.forEach(r => {
-      const horiz = r.a[1] === r.b[1], L = horiz ? r.b[0] - r.a[0] : r.b[1] - r.a[1], cx = (r.a[0] + r.b[0]) / 2, cz = (r.a[1] + r.b[1]) / 2;
-      const side = this.mesh(new T.PlaneGeometry(horiz ? L : 6.4, horiz ? 6.4 : L), '#3b4652', cx, 0.02, cz); side.rotation.x = -Math.PI / 2;
-      const road = this.mesh(new T.PlaneGeometry(horiz ? L : 3.4, horiz ? 3.4 : L), '#161c23', cx, 0.04, cz); road.rotation.x = -Math.PI / 2;
-      for (let d = -L / 2 + 1; d < L / 2; d += 3) { const dash = this.mesh(new T.PlaneGeometry(horiz ? 1.2 : 0.12, horiz ? 0.12 : 1.2), '#8b97a3', horiz ? cx + d : cx, 0.05, horiz ? cz : cz + d); dash.rotation.x = -Math.PI / 2; }
-    });
-    let seed = 7; const sr = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
-    const xs = [-36, -20, 4, 24, 36], zs = [-30, -18, 0, 14];
-    for (let i = 0; i < xs.length - 1; i++) for (let j = 0; j < zs.length - 1; j++) {
-      const x0 = xs[i] + 4, x1 = xs[i + 1] - 4, z0 = zs[j] + 4, z1 = zs[j + 1] - 4;
-      if (x1 - x0 < 3 || z1 - z0 < 3) continue;
-      if (i === 1 && j === 1) {
-        const p = this.mesh(new T.PlaneGeometry(x1 - x0, z1 - z0), '#2c4a35', (x0 + x1) / 2, 0.03, (z0 + z1) / 2); p.rotation.x = -Math.PI / 2;
-        for (let k = 0; k < 26; k++) { const tx = x0 + 1 + sr() * (x1 - x0 - 2), tz = z0 + 1 + sr() * (z1 - z0 - 2); this.mesh(new T.ConeGeometry(0.8, 2.2, 7), '#3f7a4f', tx, 1.5, tz); this.mesh(new T.CylinderGeometry(0.12, 0.12, 0.5, 6), '#6b4a2b', tx, 0.25, tz); }
-        continue;
-      }
-      if (i === 0 && j === 2) continue;
-      for (let x = x0; x < x1 - 1; x += 4.5 + sr() * 2) for (let z = z0; z < z1 - 1; z += 4.5 + sr() * 2) {
-        const w = Math.min(3.6, x1 - x), d = Math.min(3.6, z1 - z), h = 1.2 + sr() * 6;
-        this.mesh(new T.BoxGeometry(w, h, d), '#c8d1db', x + w / 2, h / 2, z + d / 2, {roughness: 0.9});
-      }
-    }
-    const [tx, tz] = NET.tba.pos;
-    this.mesh(new T.BoxGeometry(6, 0.2, 5), '#59636e', tx, 0.1, tz);
-    this.mesh(new T.BoxGeometry(2.2, 2.2, 1.6), '#7f9a8a', tx, 1.3, tz).userData = {kind: 'tba'};
-    for (let k = 0; k < 3; k++) this.mesh(new T.CylinderGeometry(0.15, 0.15, 0.9, 8), '#c9d4dc', tx - 0.6 + k * 0.6, 2.8, tz);
-    this.tbaBadge = this.badge('1', 'TBA 22/0,4kV', '#36c5f0'); this.tbaBadge.position.set(tx, 5, tz); sc.add(this.tbaBadge);
-
-    this.cabs = {}; this.posts = {}; this.segs = {}; this.flows = [];
-    const cv = (pts, y) => new T.CatmullRomCurve3(pts.map(p => new T.Vector3(p[0], y, p[1])), false, 'catmullrom', 0.01);
-    NET.cabs.forEach((c, ci) => {
-      const [x, z] = c.pos;
-      this.mesh(new T.BoxGeometry(1.4, 2.0, 0.7), '#d5dbe1', x, 1.15, z).userData = {kind: 'cab', id: c.id};
-      this.mesh(new T.BoxGeometry(1.6, 0.15, 0.9), '#8a929a', x, 0.08, z);
-      const led = this.mesh(new T.SphereGeometry(0.12, 10, 10), '#34d399', x, 2.0, z + 0.36, {emissive: '#34d399', emissiveIntensity: 1});
-      const bd = this.badge(String(ci + 2), c.id, '#36c5f0'); bd.position.set(x, 4.2, z); sc.add(bd);
-      const fc = cv(c.feeder, 0.18);
-      const feed = new T.Mesh(new T.TubeGeometry(fc, 80, 0.13, 6, false), this.mat('#1e6f8a', {emissive: '#36c5f0', emissiveIntensity: 0.25})); sc.add(feed);
-      this.cabs[c.id] = {led, bd, feed};
-      this.flows.push({curve: fc, col: new T.Color('#7fe3ff'), len: fc.getLength(), n: Math.round(fc.getLength() * 0.6), I: () => this.cabI(c.id), speed: 1.6, ph: Math.random()});
-      c.routes.forEach(r => {
-        const pts = [c.pos].concat(r.posts);
-        this.posts[r.id] = []; this.segs[r.id] = [];
-        for (let i = 0; i < r.n; i++) {
-          const a = pts[i], b = pts[i + 1], raw = i === 0 ? [a, r.path[0], b] : [a, b];
-          const curve = cv(raw.filter((p, k, arr) => k === 0 || Math.hypot(p[0] - arr[k - 1][0], p[1] - arr[k - 1][1]) > 0.05), 0.14);
-          const tube = new T.Mesh(new T.TubeGeometry(curve, 24, 0.1, 6, false), this.mat('#7a4a1f', {emissive: '#f5a524', emissiveIntensity: 0.4}));
-          tube.userData = {kind: 'post', route: r.id, idx: i}; sc.add(tube);
-          this.segs[r.id].push({tube, curve});
-          this.flows.push({curve, col: new T.Color('#ffb347'), len: curve.getLength(), n: Math.max(3, Math.round(curve.getLength() * 1.3)), I: () => this.segI(r, i), speed: 1.4, ph: Math.random()});
-          const [px, pz] = r.posts[i], horiz = Math.abs(r.path[0][1] - r.path[1][1]) < 0.01;
-          const road = ROADS.find(R => horiz ? (R.a[1] === R.b[1] && Math.abs(R.a[1] - pz) < 3) : (R.a[0] === R.b[0] && Math.abs(R.a[0] - px) < 3));
-          const dir = road ? (horiz ? (pz > road.a[1] ? -1 : 1) : (px > road.a[0] ? -1 : 1)) : 1;
-          const grp = new T.Group(); grp.position.set(px, 0, pz); sc.add(grp);
-          const pole = this.mesh(new T.CylinderGeometry(0.07, 0.1, 3.2, 8), '#aab6c2', 0, 1.6, 0, null, grp);
-          const arm = this.mesh(new T.BoxGeometry(horiz ? 0.06 : 0.9, 0.06, horiz ? 0.9 : 0.06), '#aab6c2', horiz ? 0 : dir * 0.45, 3.18, horiz ? dir * 0.45 : 0, null, grp);
-          const head = this.mesh(new T.BoxGeometry(horiz ? 0.35 : 0.6, 0.12, horiz ? 0.6 : 0.35), '#3a4048', horiz ? 0 : dir * 0.9, 3.12, horiz ? dir * 0.9 : 0, {emissive: '#000'}, grp);
-          const glow = new T.Sprite(new T.SpriteMaterial({map: this.glow(), color: 0xffe9a6, transparent: true, depthWrite: false, blending: T.AdditiveBlending}));
-          glow.scale.set(1.6, 1.6, 1); glow.position.copy(head.position); grp.add(glow);
-          const pool = new T.Mesh(new T.CircleGeometry(2.4, 24), new T.MeshBasicMaterial({map: this.glow(), color: 0xffe2a0, transparent: true, opacity: 0.55, depthWrite: false, blending: T.AdditiveBlending}));
-          pool.rotation.x = -Math.PI / 2; pool.position.set(head.position.x, 0.07, head.position.z); grp.add(pool);
-          [pole, arm, head].forEach(m => { m.userData = {kind: 'post', route: r.id, idx: i}; });
-          this.posts[r.id].push({head, glow, pool});
-        }
-        const mid = r.posts[Math.floor(r.n / 2)];
-        const rb = this.badge(r.id, `K${r.ch + 1}`, '#f5a524'); rb.scale.set(0.062, 0.0135, 1); rb.position.set(mid[0], 4.4, mid[1]); sc.add(rb);
-        this.posts[r.id].badge = rb;
-      });
-    });
-    let off = 0; this.flows.forEach(f => { f.off = off; off += f.n; });
-    const geo = new T.BufferGeometry();
-    geo.setAttribute('position', new T.BufferAttribute(new Float32Array(off * 3), 3));
-    geo.setAttribute('color', new T.BufferAttribute(new Float32Array(off * 3), 3));
-    this.pgeo = geo;
-    const P = new T.Points(geo, new T.PointsMaterial({size: 0.55, map: this.glow(), vertexColors: true, transparent: true, depthWrite: false, blending: T.AdditiveBlending}));
-    P.frustumCulled = false; sc.add(P);
-    this.ring = new T.Mesh(new T.RingGeometry(1.1, 1.45, 32), new T.MeshBasicMaterial({color: 0x36c5f0, transparent: true, opacity: 0.9, side: T.DoubleSide, depthTest: false}));
-    this.ring.rotation.x = -Math.PI / 2; this.ring.visible = false; this.ring.renderOrder = 15; sc.add(this.ring);
-    this.estZones = new T.Group(); sc.add(this.estZones);
-    this.pins = new T.Group(); sc.add(this.pins);
+    const T = THREE, B = LG.base;
+    this.L = {ward: this.lines(B.ward, 0.2), ranh: this.lines(B.ranh, 0.2), tim: this.lines(B.tim, 0.1), edge: this.lines(B.edge, 0.3), river: this.lines(B.river, 0.25)};
+    // Cáp: mỗi đoạn 2 đỉnh, màu theo ngầm/nổi và trạng thái
+    const m = LG.SA.length, pos = new Float32Array(m * 6), col = new Float32Array(m * 6);
+    for (let k = 0; k < m; k++) { const a = LG.SA[k], b = LG.SB[k]; pos.set([LG.PX[a], 0.6, -LG.PY[a], LG.PX[b], 0.6, -LG.PY[b]], k * 6); }
+    const cg = new T.BufferGeometry(); cg.setAttribute('position', new T.BufferAttribute(pos, 3)); cg.setAttribute('color', new T.BufferAttribute(col, 3));
+    this.cables = new T.LineSegments(cg, new T.LineBasicMaterial({vertexColors: true})); this.cables.frustumCulled = false; this.sc.add(this.cables);
+    this.segCab = new Int32Array(m); for (let k = 0; k < m; k++) this.segCab[k] = LG.PT[LG.SA[k]];
+    // Trụ: chấm (luôn thấy) + quầng sáng đèn (đêm)
+    const n = LG.n, pp = new Float32Array(n * 3), pc = new Float32Array(n * 3), gp = new Float32Array(n * 3), gc = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) { pp.set([LG.PX[i], 1, -LG.PY[i]], i * 3); gp.set([LG.PX[i], 0.8, -LG.PY[i]], i * 3); }
+    const pg = new T.BufferGeometry(); pg.setAttribute('position', new T.BufferAttribute(pp, 3)); pg.setAttribute('color', new T.BufferAttribute(pc, 3));
+    this.poles = new T.Points(pg, new T.PointsMaterial({size: 5, sizeAttenuation: false, vertexColors: true, map: this.dot(), transparent: true, alphaTest: 0.3})); this.poles.frustumCulled = false; this.sc.add(this.poles);
+    const gg = new T.BufferGeometry(); gg.setAttribute('position', new T.BufferAttribute(gp, 3)); gg.setAttribute('color', new T.BufferAttribute(gc, 3));
+    this.glows = new T.Points(gg, new T.PointsMaterial({size: 26, sizeAttenuation: true, vertexColors: true, map: this.glow(), transparent: true, depthWrite: false, blending: T.AdditiveBlending})); this.glows.frustumCulled = false; this.sc.add(this.glows);
+    // Cột đèn 3D (chỉ hiện khi xem 3D ở gần)
+    const pg2 = new T.CylinderGeometry(0.15, 0.22, 9, 6); pg2.translate(0, 4.5, 0);
+    this.sticks = new T.InstancedMesh(pg2, new T.MeshBasicMaterial({color: 0x9aa39d}), n);
+    const mtx = new T.Matrix4(); for (let i = 0; i < n; i++) { mtx.makeTranslation(LG.PX[i], 0, -LG.PY[i]); this.sticks.setMatrixAt(i, mtx); }
+    this.sticks.visible = false; this.sc.add(this.sticks);
+    // Tủ: chấm lớn + khối 3D
+    const nc = LG.cabs.length, cp = new Float32Array(nc * 3), cc = new Float32Array(nc * 3);
+    LG.cabs.forEach((c, k) => cp.set([c.x, 2, -c.y], k * 3));
+    const cgm = new T.BufferGeometry(); cgm.setAttribute('position', new T.BufferAttribute(cp, 3)); cgm.setAttribute('color', new T.BufferAttribute(cc, 3));
+    this.cabPts = new T.Points(cgm, new T.PointsMaterial({size: 11, sizeAttenuation: false, vertexColors: true, map: this.dot(), transparent: true, alphaTest: 0.3, depthTest: false})); this.cabPts.renderOrder = 8; this.cabPts.frustumCulled = false; this.sc.add(this.cabPts);
+    const bx = new T.BoxGeometry(1.6, 2.2, 0.9); bx.translate(0, 1.1, 0);
+    this.cabBox = new T.InstancedMesh(bx, new T.MeshBasicMaterial({color: 0xd5dbe1}), nc);
+    LG.cabs.forEach((c, k) => { mtx.makeTranslation(c.x, 0, -c.y); this.cabBox.setMatrixAt(k, mtx); });
+    this.cabBox.visible = false; this.sc.add(this.cabBox);
+    // Đoạn nghi đứt (đỏ nhấp nháy), dòng điện chạy, vòng chọn
+    const xg = new T.BufferGeometry(); xg.setAttribute('position', new T.BufferAttribute(new Float32Array(6 * 64), 3)); xg.setDrawRange(0, 0);
+    this.cutLines = new T.LineSegments(xg, new T.LineBasicMaterial({color: 0xff3b3b, transparent: true})); this.cutLines.frustumCulled = false; this.cutLines.renderOrder = 9; this.sc.add(this.cutLines);
+    const FMAX = 6000, fg = new T.BufferGeometry();
+    fg.setAttribute('position', new T.BufferAttribute(new Float32Array(FMAX * 3), 3)); fg.setAttribute('color', new T.BufferAttribute(new Float32Array(FMAX * 3), 3)); fg.setDrawRange(0, 0);
+    this.flowPts = new T.Points(fg, new T.PointsMaterial({size: 5, sizeAttenuation: false, vertexColors: true, map: this.glow(), transparent: true, depthWrite: false, blending: T.AdditiveBlending})); this.flowPts.frustumCulled = false; this.sc.add(this.flowPts);
+    this.FMAX = FMAX; this.flows = []; this.flowAt = 0;
+    this.ring = new T.Mesh(new T.RingGeometry(0.8, 1, 40), new T.MeshBasicMaterial({color: 0x36c5f0, transparent: true, side: T.DoubleSide, depthTest: false}));
+    this.ring.rotation.x = -Math.PI / 2; this.ring.visible = false; this.ring.renderOrder = 10; this.sc.add(this.ring);
   },
-  cabI(id) { const c = netCab(id); return c && c.online && c.tele && (c.tele.v || []).some(v => v >= CFG.V_LOST) ? (c.tele.i || []).reduce((a, b) => a + (b || 0), 0) + 2 : 0; },
-  segI(r, i) { const e = routeEst(netCab(r.cab), r); return e.energ && i < e.lit ? (e.lit - i) * LAMP_A : 0; },
+  applyTheme() {
+    const P = MAPC[this.theme], T = THREE;
+    this.sc.background = new T.Color(P.bg);
+    const set = (o, c, op) => { o.material.color.set(c); o.material.transparent = op < 1; o.material.opacity = op; };
+    set(this.L.edge, P.edge, 1); set(this.L.tim, P.tim, 1); set(this.L.river, P.river, 1); set(this.L.ward, P.ward, 0.8); set(this.L.ranh, P.ward, 0.35);
+    this.sticks.material.color.set(P.pole);
+    this.dirty = true; this.lastStat = '';
+  },
+  // Tô màu cáp, trụ, tủ theo trạng thái ước tính – chỉ chạy lại khi có thay đổi
+  recolor() {
+    const P = MAPC[this.theme], T = THREE, cN = new T.Color(P.ngam), cF = new T.Color(P.noi), cD = new T.Color(P.dead), cP = new T.Color(P.pole);
+    const night = this.night, lampC = new T.Color('#ffe9a6'), offC = new T.Color(this.theme === 'dark' ? '#3a423e' : '#b9bfb7');
+    const est = {}; LG.cabs.forEach(g => { est[g.t] = cabEst(g.t); });
+    const deadSet = {};
+    LG.cabs.forEach(g => { const e = est[g.t]; if (e.cut !== null && e.cut !== undefined && g.order) deadSet[g.t] = inSubtree(g, e.cut); });
+    const lit = i => { const e = est[LG.PT[i]]; if (!e || !e.known || !e.on || e.allDead) return false; const d = deadSet[LG.PT[i]]; return !(d && d.has(i)); };
+    const col = this.cables.geometry.attributes.color.array;
+    for (let k = 0; k < LG.SA.length; k++) {
+      const on = lit(LG.SB[k]) || lit(LG.SA[k]), c = on ? (LG.ST[k] ? cF : cN) : cD;
+      col[k * 6] = col[k * 6 + 3] = c.r; col[k * 6 + 1] = col[k * 6 + 4] = c.g; col[k * 6 + 2] = col[k * 6 + 5] = c.b;
+    }
+    this.cables.geometry.attributes.color.needsUpdate = true;
+    const pc = this.poles.geometry.attributes.color.array, gc = this.glows.geometry.attributes.color.array;
+    for (let i = 0; i < LG.n; i++) {
+      const L = lit(i), c = L ? lampC : (est[LG.PT[i]] && est[LG.PT[i]].known ? offC : cP);
+      pc[i * 3] = c.r; pc[i * 3 + 1] = c.g; pc[i * 3 + 2] = c.b;
+      const gl = L && night ? 0.55 : 0; gc[i * 3] = gl; gc[i * 3 + 1] = gl * 0.9; gc[i * 3 + 2] = gl * 0.6;
+    }
+    this.poles.geometry.attributes.color.needsUpdate = true; this.glows.geometry.attributes.color.needsUpdate = true;
+    const cc = this.cabPts.geometry.attributes.color.array;
+    LG.cabs.forEach((g, k) => { const c = new T.Color(STC[cabStatus(g.t)]); cc[k * 3] = c.r; cc[k * 3 + 1] = c.g; cc[k * 3 + 2] = c.b; });
+    this.cabPts.geometry.attributes.color.needsUpdate = true;
+    // Đoạn nghi đứt
+    const cl = this.cutLines.geometry.attributes.position.array; let q = 0;
+    LG.cabs.forEach(g => { const e = est[g.t]; (e.cand || []).slice(0, 4).forEach(i => { if (q >= 64) return; const p = LG.PP[i]; const ax = p >= 0 ? LG.PX[p] : g.x, ay = p >= 0 ? LG.PY[p] : g.y; cl.set([ax, 1.2, -ay, LG.PX[i], 1.2, -LG.PY[i]], q * 6); q++; }); if (e.allDead && g.root !== undefined && q < 64) { cl.set([g.x, 1.2, -g.y, LG.PX[g.root], 1.2, -LG.PY[g.root]], q * 6); q++; } });
+    this.cutLines.geometry.setDrawRange(0, q * 2); this.cutLines.geometry.attributes.position.needsUpdate = true;
+    this.est = est; this.deadSet = deadSet; this.litFn = lit;
+  },
   bind() {
     const el = this.R.domElement;
     el.addEventListener('contextmenu', e => e.preventDefault());
@@ -2421,16 +2638,17 @@ const G3 = {
       const p = this.pts.get(e.pointerId); if (!p) return;
       const dx = e.clientX - p.x, dy = e.clientY - p.y, c = this.cam;
       if (this.pts.size === 1) {
-        if (p.b === 2 || p.sh) this.pan(dx, dy);
-        else { c.theta -= dx * 0.006; c.phi = Math.min(1.45, Math.max(0.25, c.phi - dy * 0.005)); }
+        const rotate = this.mode3d ? !(p.b === 2 || p.sh) : (p.b === 2 || p.sh);
+        if (rotate) { c.theta -= dx * 0.006; if (this.mode3d) c.phi = Math.min(1.35, Math.max(0.15, c.phi - dy * 0.005)); }
+        else this.pan(dx, dy);
       } else if (this.pts.size === 2) {
         const [a, b] = [...this.pts.values()], d0 = Math.hypot(a.x - b.x, a.y - b.y), m0 = [(a.x + b.x) / 2, (a.y + b.y) / 2];
         p.x = e.clientX; p.y = e.clientY;
         const [a2, b2] = [...this.pts.values()], d1 = Math.hypot(a2.x - b2.x, a2.y - b2.y), m1 = [(a2.x + b2.x) / 2, (a2.y + b2.y) / 2];
-        if (d0 > 0 && d1 > 0) c.r = Math.min(140, Math.max(6, c.r * d0 / d1));
-        this.pan(m1[0] - m0[0], m1[1] - m0[1]); return;
+        if (d0 > 0 && d1 > 0) c.r = Math.min(40000, Math.max(25, c.r * d0 / d1));
+        this.pan(m1[0] - m0[0], m1[1] - m0[1]); this.dirty = true; return;
       }
-      p.x = e.clientX; p.y = e.clientY;
+      p.x = e.clientX; p.y = e.clientY; this.dirty = true;
     });
     const up = e => {
       this.pts.delete(e.pointerId);
@@ -2438,252 +2656,309 @@ const G3 = {
       this.down = null;
     };
     el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
-    el.addEventListener('wheel', e => { e.preventDefault(); this.goal = null; this.cam.r = Math.min(140, Math.max(6, this.cam.r * (e.deltaY > 0 ? 1.1 : 0.9))); }, {passive: false});
+    el.addEventListener('wheel', e => {
+      e.preventDefault(); this.goal = null;
+      const g0 = this.ground(e.clientX, e.clientY), f = e.deltaY > 0 ? 1.15 : 0.87, c = this.cam;
+      c.r = Math.min(40000, Math.max(25, c.r * f));
+      if (g0) { c.tx = g0.x + (c.tx - g0.x) * f; c.tz = g0.z + (c.tz - g0.z) * f; }     // phóng về phía con trỏ như CAD
+      this.dirty = true;
+    }, {passive: false});
     el.addEventListener('dblclick', () => this.focusSel());
   },
-  pan(dx, dy) { const c = this.cam, k = c.r * 0.0016, fx = Math.sin(c.theta), fz = Math.cos(c.theta); c.tx += (-dx * fz - dy * fx) * k; c.tz += (dx * fx - dy * fz) * k; },
+  pan(dx, dy) { const c = this.cam, k = c.r * 0.0016 * (this.mode3d ? 1 : 1.1), fx = Math.sin(c.theta), fz = Math.cos(c.theta); c.tx += (-dx * fz - dy * fx) * k; c.tz += (dx * fx - dy * fz) * k; },
+  ground(cx, cy) {
+    const rc = this.R.domElement.getBoundingClientRect();
+    this.ray.setFromCamera(new THREE.Vector2((cx - rc.left) / rc.width * 2 - 1, -(cy - rc.top) / rc.height * 2 + 1), this.cam3);
+    const p = new THREE.Vector3(); return this.ray.ray.intersectPlane(this.plane, p) ? p : null;
+  },
+  mPerPx() { const h = this.R.domElement.clientHeight || 600; return 2 * this.cam.r * Math.tan(20 * Math.PI / 180) / h; },
+  pick(e) {
+    const g = this.ground(e.clientX, e.clientY); if (!g) return;
+    const X = g.x, Y = -g.z, k = this.mPerPx();
+    const c = LG.nearCab(X, Y, 14 * k);
+    if (c) { this.select({kind: 'cab', t: c.t}); return; }
+    const i = LG.nearPole(X, Y, 10 * k);
+    if (i >= 0) { this.select({kind: 'pole', i}); return; }
+    this.select(null);
+  },
+  select(s) { this.sel = s; this.dirty = true; this.tick(); },
   resize() {
     if (!this.R || !this.R.domElement.parentElement) return;
     const el = this.R.domElement.parentElement, w = el.clientWidth, h = el.clientHeight; if (!w || !h) return;
     this.R.setSize(w, h, false); this.cam3.aspect = w / h; this.cam3.updateProjectionMatrix();
+    const dpr = Math.min(devicePixelRatio || 1, 2); this.ov.width = w * dpr; this.ov.height = h * dpr; this.dirty = true;
   },
-  home(now) {
-    const el = this.R && this.R.domElement.parentElement, portrait = el && el.clientWidth < el.clientHeight;
-    const g = {theta: -0.55, phi: 0.92, r: portrait ? 110 : 76, tx: 0, ty: 0, tz: -8};
+  fitCabs(list, now) {
+    if (!list.length) return;
+    let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; list.forEach(c => { x0 = Math.min(x0, c.x); x1 = Math.max(x1, c.x); y0 = Math.min(y0, c.y); y1 = Math.max(y1, c.y); });
+    const el = this.R && this.R.domElement.parentElement, asp = el ? el.clientWidth / Math.max(1, el.clientHeight) : 1;
+    const span = Math.max(y1 - y0, (x1 - x0) / asp, 300) * 1.15;
+    const g = {theta: 0, phi: this.mode3d ? 0.9 : 0.001, r: span / (2 * Math.tan(20 * Math.PI / 180)), tx: (x0 + x1) / 2, tz: -(y0 + y1) / 2};
     if (now) Object.assign(this.cam, g); else this.goal = g;
   },
-  focusAt(x, z, r = 22) { this.goal = {theta: this.cam.theta, phi: 0.62, r, tx: x, ty: 0, tz: z}; },
+  focusXY(x, y, r = 260) { this.goal = {theta: this.cam.theta, phi: this.mode3d ? 0.85 : 0.001, r, tx: x, tz: -y}; },
   focusSel() {
     const s = this.sel; if (!s) return;
-    if (s.kind === 'tba') this.focusAt(NET.tba.pos[0], NET.tba.pos[1], 20);
-    if (s.kind === 'cab') { const c = NET_CAB[s.id]; this.focusAt(c.pos[0], c.pos[1], 18); }
-    if (s.kind === 'post') { const p = ROUTES[s.route].posts[s.idx]; this.focusAt(p[0], p[1], 16); }
+    if (s.kind === 'cab') { const g = LG.byT[s.t]; this.focusXY(g.x, g.y, 320); }
+    if (s.kind === 'pole') this.focusXY(LG.PX[s.i], LG.PY[s.i], 140);
   },
-  select(s) { this.sel = s; this.tick(); },
-  pick(e) {
-    const rc = this.R.domElement.getBoundingClientRect();
-    this.ray.setFromCamera(new THREE.Vector2((e.clientX - rc.left) / rc.width * 2 - 1, -(e.clientY - rc.top) / rc.height * 2 + 1), this.cam3);
-    const hit = this.ray.intersectObjects(this.sc.children, true).find(h => { let o = h.object; while (o && !o.userData.kind) o = o.parent; return !!o; });
-    if (!hit) { this.select(null); return; }
-    let o = hit.object; while (!o.userData.kind) o = o.parent;
-    this.select(Object.assign({}, o.userData));
+  focusTarget(f) {
+    if (f.pole !== undefined && f.pole >= 0 && f.pole < LG.n) { this.select({kind: 'pole', i: f.pole}); this.focusSel(); }
+    else if (f.cab !== undefined && LG.byT[f.cab]) { this.select({kind: 'cab', t: f.cab}); this.focusSel(); }
+  },
+  setMode3d(on) {
+    this.mode3d = on; const c = this.cam;
+    this.goal = {theta: on ? 0.5 : 0, phi: on ? 0.9 : 0.001, r: c.r * (on ? 0.8 : 1.25), tx: c.tx, tz: c.tz};
   },
   frame(ts) {
     if (!this.R || !document.body.contains(this.R.domElement)) { this.running = false; this.lt = 0; return; }
     requestAnimationFrame(t => this.frame(t));
     const time = ts / 1000, dt = Math.min(0.1, time - (this.lt || time)); this.lt = time;
     const c = this.cam;
-    if (this.goal) { let done = true; for (const k in this.goal) { const d = this.goal[k] - c[k]; c[k] += d * 0.08; if (Math.abs(d) > 0.01) done = false; } if (done) this.goal = null; }
-    this.cam3.position.set(c.tx + c.r * Math.sin(c.phi) * Math.sin(c.theta), c.ty + c.r * Math.cos(c.phi), c.tz + c.r * Math.sin(c.phi) * Math.cos(c.theta));
-    this.cam3.lookAt(c.tx, c.ty, c.tz);
+    if (this.goal) { let done = true; for (const k in this.goal) { const d = this.goal[k] - c[k]; c[k] += d * 0.12; if (Math.abs(d) > (k === 'r' ? 0.5 : 0.002)) done = false; } if (done) this.goal = null; this.dirty = true; }
+    const ph = Math.max(0.001, c.phi);
+    this.cam3.position.set(c.tx + c.r * Math.sin(ph) * Math.sin(c.theta), c.r * Math.cos(ph), c.tz + c.r * Math.sin(ph) * Math.cos(c.theta));
+    if (ph < 0.01) this.cam3.up.set(Math.sin(c.theta), 0, -Math.cos(c.theta)); else this.cam3.up.set(0, 1, 0);
+    this.cam3.lookAt(c.tx, 0, c.tz);
     this.update(time, dt);
     this.R.render(this.sc, this.cam3);
+    if (this.dirty || time - (this.lastOv || 0) > 0.5) { this.dirty = false; this.lastOv = time; this.drawOverlay(); }
   },
   update(time, dt) {
-    const T = THREE, pulse = 0.5 + 0.5 * Math.sin(time * 6);
     const m = App.settings.demo ? Clock.min() : new Date().getHours() * 60 + new Date().getMinutes();
-    const night = m >= 17 * 60 + 45 || m < 6 * 60;
-    this.sc.background.set(night ? '#0d151e' : '#2a3a4c');
-    this.hemi.intensity = night ? 0.45 : 0.95; this.sun.intensity = night ? 0.2 : 0.75;
-    const grid = gridState();
-    NET.cabs.forEach(c => {
-      const o = this.cabs[c.id], cab = netCab(c.id), st = cab ? App.cabState(cab) : 'off';
-      const col = st === 'bad' ? '#f87171' : st === 'warn' ? '#fbbf24' : st === 'ok' ? '#34d399' : '#5b6b7b';
-      o.led.material.color.set(col); o.led.material.emissive.set(col); o.led.material.emissiveIntensity = st === 'bad' ? pulse : 1;
-      const nAl = cab ? Object.keys(cab.active).length : 0, key = st + nAl;
-      if (o.bdKey !== key) { o.bdKey = key; o.bd.userData.tex.draw(st === 'bad' ? '#f87171' : st === 'warn' ? '#fbbf24' : st === 'off' ? '#5b6b7b' : '#36c5f0', nAl ? `${c.id} ⚠${nAl}` : st === 'off' ? `${c.id} · mất KN` : c.id); }
-      const live = this.cabI(c.id) > 0;
-      o.feed.material.emissiveIntensity = live ? 0.35 : 0; o.feed.material.color.set(live ? '#1e6f8a' : '#3a434d');
-      c.routes.forEach(r => {
-        const e = routeEst(cab, r), al = routeAlarm(cab, r.id);
-        r.posts.forEach((_, i) => {
-          const P = this.posts[r.id][i], seg = this.segs[r.id][i], lit = e.energ && i < e.lit;
-          P.glow.visible = lit && night; P.pool.visible = lit && night;
-          P.head.material.emissive.set(lit ? '#ffe9a6' : '#000'); P.head.material.emissiveIntensity = lit ? 1 : 0;
-          const dead = al && (al.code === 'CAT_CAP' || al.code === 'MAT_DIEN_TUYEN') && i >= e.lit;
-          seg.tube.material.color.set(dead ? '#5a1d1d' : lit ? '#7a4a1f' : '#3a414a');
-          seg.tube.material.emissive.set(dead ? '#ff3030' : '#f5a524'); seg.tube.material.emissiveIntensity = dead ? pulse * 0.6 : lit ? 0.45 : 0;
-        });
-        const pb = this.posts[r.id].badge, k2 = al ? 'bad' : 'ok';
-        if (pb.key !== k2) { pb.key = k2; pb.userData.tex.draw(al ? '#f87171' : '#f5a524', al ? `K${r.ch + 1} ⚠` : `K${r.ch + 1}`); }
-      });
-    });
-    const tk = grid;
-    if (this.tbaKey !== tk) { this.tbaKey = tk; this.tbaBadge.userData.tex.draw(grid === 'lost' ? '#f87171' : '#36c5f0', grid === 'lost' ? 'TBA ⚠ MẤT ĐIỆN' : 'TBA 22/0,4kV'); }
-    // Dòng điện chạy trong cáp
-    const pos = this.pgeo.attributes.position.array, col = this.pgeo.attributes.color.array, tmp = this._t || (this._t = new T.Vector3());
-    this.flows.forEach(f => {
-      const I = this.flow ? Math.max(0, f.I()) : 0;
-      const nVis = I > 0.2 ? Math.max(2, Math.round(f.n * Math.min(1, 0.3 + I / 10))) : 0;
-      f.ph = (f.ph + dt * (0.6 + Math.min(I, 20) * 0.25) * f.speed / f.len) % 1;
-      for (let j = 0; j < f.n; j++) {
-        const o = (f.off + j) * 3;
-        if (j < nVis) { f.curve.getPointAt((f.ph + j / nVis) % 1, tmp); pos[o] = tmp.x; pos[o + 1] = tmp.y + 0.12; pos[o + 2] = tmp.z; col[o] = f.col.r; col[o + 1] = f.col.g; col[o + 2] = f.col.b; }
-        else { col[o] = col[o + 1] = col[o + 2] = 0; pos[o + 1] = -50; }
-      }
-    });
-    this.pgeo.attributes.position.needsUpdate = true; this.pgeo.attributes.color.needsUpdate = true;
-    // Vùng nghi đứt cáp (ước tính từ dòng) + ghim đánh dấu của sự cố đang mở
-    const zones = [];
-    NET.cabs.forEach(c => { const cab = netCab(c.id); c.routes.forEach(r => { const al = routeAlarm(cab, r.id); if (al && (al.code === 'CAT_CAP' || al.code === 'MAT_DIEN_TUYEN')) zones.push({r, est: al.est || 0}); }); });
-    const zk = zones.map(z => z.r.id + z.est).join(',');
-    if (this.zk !== zk) {
-      this.zk = zk; while (this.estZones.children.length) this.estZones.remove(this.estZones.children[0]);
-      zones.forEach(z => {
-        const seg = this.segs[z.r.id][Math.min(z.r.n - 1, z.est)], a = seg.curve.getPointAt(0), b = seg.curve.getPointAt(1);
-        const m = new T.Mesh(new T.PlaneGeometry(1, 1), new T.MeshBasicMaterial({color: 0xf87171, transparent: true, opacity: 0.35, depthWrite: false}));
-        m.rotation.x = -Math.PI / 2; m.rotation.z = -Math.atan2(b.z - a.z, b.x - a.x);
-        m.position.set((a.x + b.x) / 2, 0.09, (a.z + b.z) / 2); m.scale.set(Math.hypot(a.x - b.x, a.z - b.z) + 2, 2.6, 1);
-        this.estZones.add(m);
-      });
+    this.night = m >= 17 * 60 + 45 || m < 6 * 60;
+    // Chỉ tô lại khi trạng thái tủ/sự cố đổi
+    if (time - (this.sigAt || 0) < 0.5 && this.lastStat) { /* chưa đến lúc kiểm tra */ } else {
+    this.sigAt = time;
+    const sig = LG.cabs.length + '|' + this.night + '|' + App.incidents.length + '|' + Object.values(App.cabs).map(c => (c.online ? 1 : 0) + (c.tele ? (c.tele.do || []).join('') + (c.tele.di || []).join('') : '') + Object.keys(c.active).join(',') + JSON.stringify((c.active.CAT_CAP || {}).cand || '')).join(';');
+    if (sig !== this.lastStat) { this.lastStat = sig; this.recolor(); }
     }
-    this.estZones.children.forEach(m => { m.material.opacity = 0.18 + pulse * 0.25; });
-    const marks = App.incidents.filter(x => x.status !== 'done' && x.mark && ROUTES[x.mark.route]).map(x => x.mark);
-    const mk = marks.map(m => m.route + m.idx).join(',');
-    if (this.mk !== mk) {
-      this.mk = mk; while (this.pins.children.length) this.pins.remove(this.pins.children[0]);
-      marks.forEach(m => { const p = ROUTES[m.route].posts[m.idx]; const pin = new T.Mesh(new T.ConeGeometry(0.35, 1.1, 10), new T.MeshBasicMaterial({color: 0x36c5f0})); pin.rotation.x = Math.PI; pin.position.set(p[0], 4.0, p[1]); this.pins.add(pin); });
-    }
-    this.pins.children.forEach((p, i) => { p.position.y = 4 + Math.sin(time * 3 + i) * 0.25; });
+    const pulse = 0.5 + 0.5 * Math.sin(time * 6);
+    this.cutLines.material.opacity = 0.35 + pulse * 0.65;
+    const close = this.cam.r < 2500;
+    this.sticks.visible = this.mode3d && close; this.cabBox.visible = this.mode3d && close;
+    this.poles.material.size = this.cam.r < 600 ? 7 : this.cam.r < 2500 ? 5 : 3;
+    // Vòng chọn
     const s = this.sel;
     if (s) {
-      const [x, z] = s.kind === 'tba' ? NET.tba.pos : s.kind === 'cab' ? NET_CAB[s.id].pos : ROUTES[s.route].posts[s.idx];
-      this.ring.visible = true; this.ring.position.set(x, 0.12, z); this.ring.scale.setScalar(1 + pulse * 0.15);
+      const x = s.kind === 'cab' ? LG.byT[s.t].x : LG.PX[s.i], y = s.kind === 'cab' ? LG.byT[s.t].y : LG.PY[s.i], k = this.mPerPx() * 14;
+      this.ring.visible = true; this.ring.position.set(x, 2.5, -y); this.ring.scale.setScalar(k * (1 + pulse * 0.2));
     } else this.ring.visible = false;
+    this.updateFlow(time, dt);
   },
-  // Các lớp HTML phủ trên bản đồ – cập nhật mỗi giây, không vẽ lại khung 3D
+  // Dòng điện chạy trong cáp – chỉ tính cho các tủ gần tầm nhìn khi phóng to
+  updateFlow(time, dt) {
+    const geo = this.flowPts.geometry;
+    if (!this.flow || this.cam.r > 1600 || !this.litFn) { geo.setDrawRange(0, 0); return; }
+    if (time - this.flowAt > 0.6) {
+      this.flowAt = time; const c = this.cam, X = c.tx, Y = -c.tz, R2 = (c.r * 0.9) ** 2;
+      const near = LG.cabs.filter(g => g.order && ((g.x - X) ** 2 + (g.y - Y) ** 2) < R2 + (g.len || 0) ** 2).sort((a, b) => ((a.x - X) ** 2 + (a.y - Y) ** 2) - ((b.x - X) ** 2 + (b.y - Y) ** 2)).slice(0, 10);
+      this.flows = [];
+      let budget = this.FMAX;
+      for (const g of near) for (const i of g.order) {
+        const p = LG.PP[i]; if (!this.litFn(i)) continue;
+        const ax = p >= 0 ? LG.PX[p] : g.x, ay = p >= 0 ? LG.PY[p] : g.y, len = Math.hypot(LG.PX[i] - ax, LG.PY[i] - ay), nP = Math.max(1, Math.round(len / 9));
+        if (budget < nP) break; budget -= nP;
+        this.flows.push({ax, ay, bx: LG.PX[i], by: LG.PY[i], len, n: nP, I: LG.PSUB[i], ph: Math.random(), ng: !LG.ST[Math.max(0, LG.PSEG[i])]});
+      }
+    }
+    const pos = geo.attributes.position.array, col = geo.attributes.color.array; let o = 0;
+    for (const f of this.flows) {
+      f.ph = (f.ph + dt * (6 + Math.min(f.I, 30) * 1.6) / Math.max(4, f.len)) % 1;
+      for (let j = 0; j < f.n; j++) {
+        const u = (f.ph + j / f.n) % 1;
+        pos[o * 3] = f.ax + (f.bx - f.ax) * u; pos[o * 3 + 1] = 1.5; pos[o * 3 + 2] = -(f.ay + (f.by - f.ay) * u);
+        col[o * 3] = 1; col[o * 3 + 1] = 0.78; col[o * 3 + 2] = 0.35; o++;
+      }
+    }
+    geo.setDrawRange(0, o); geo.attributes.position.needsUpdate = true; geo.attributes.color.needsUpdate = true;
+  },
+  // Lớp chữ: tên phường, tên đường, mã tủ, tên trụ – chiếu từ toạ độ CAD, tránh chồng chữ
+  drawOverlay() {
+    const cv = this.ov, g = cv.getContext('2d'), dpr = cv.width / Math.max(1, cv.clientWidth), W = cv.clientWidth, H = cv.clientHeight;
+    g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    if (!LG.texts) return;
+    const P = MAPC[this.theme], v = new THREE.Vector3(), cam = this.cam3, k = this.mPerPx();
+    const occ = new Set(), cell = 26;
+    const free = (x, y, w, h) => { const xs = Math.floor((x - w / 2) / cell), xe = Math.floor((x + w / 2) / cell), ys = Math.floor((y - h / 2) / cell), ye = Math.floor((y + h / 2) / cell); for (let a = xs; a <= xe; a++) for (let b = ys; b <= ye; b++) if (occ.has(a + ':' + b)) return false; for (let a = xs; a <= xe; a++) for (let b = ys; b <= ye; b++) occ.add(a + ':' + b); return true; };
+    const proj = (x, y) => { v.set(x, 0, -y).project(cam); return v.z < 1 ? [(v.x + 1) / 2 * W, (1 - v.y) / 2 * H] : null; };
+    const label = (txt, x, y, font, fill, rot) => {
+      g.font = font; const w = g.measureText(txt).width + 6;
+      if (!free(x, y, rot ? Math.max(w, 20) : w, 16)) return;
+      g.save(); g.translate(x, y); if (rot) g.rotate(rot); g.lineWidth = 3; g.strokeStyle = P.halo; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.strokeText(txt, 0, 0); g.fillStyle = fill; g.fillText(txt, 0, 0); g.restore();
+    };
+    // Tủ có sự cố + tủ đang chọn luôn có nhãn
+    const sel = this.sel;
+    LG.cabs.forEach(c => {
+      const st = cabStatus(c.t), important = st === 'bad' || st === 'warn' || (sel && sel.kind === 'cab' && sel.t === c.t);
+      if (!important && k > 1.2) return;
+      const s = proj(c.x, c.y); if (!s || s[0] < -40 || s[0] > W + 40 || s[1] < -20 || s[1] > H + 20) return;
+      label((st === 'bad' ? '⚠ ' : '') + c.id, s[0], s[1] - 14, `700 ${important ? 12 : 11}px system-ui`, st === 'bad' ? '#f87171' : st === 'warn' ? '#fbbf24' : (this.theme === 'dark' ? '#e6f2fb' : '#17212b'), 0);
+    });
+    if (k > 6) LG.wtexts.forEach(t => { const s = proj(t.x, t.y); if (s) label(t.s.toUpperCase(), s[0], s[1], '700 12px system-ui', P.ward, 0); });
+    if (k < 3) {
+      let n = 0;
+      for (const t of LG.texts) {
+        if (n > 260) break;
+        if (t.hem && k > 0.9) continue;
+        const px = t.h / k; if (px < 6) continue;
+        const s = proj(t.x, t.y); if (!s || s[0] < 0 || s[0] > W || s[1] < 0 || s[1] > H) continue;
+        let r = -t.r - (this.mode3d ? 0 : this.cam.theta); r = ((r + Math.PI / 2) % Math.PI + Math.PI) % Math.PI - Math.PI / 2;
+        label(t.s, s[0], s[1], `${t.hem ? 400 : 600} ${Math.min(14, Math.max(10, px))}px system-ui`, t.k === 'rtext' ? P.river : P.road, this.mode3d ? 0 : r); n++;
+      }
+    }
+    if (k < 0.35) {
+      const c = this.cam, X = c.tx, Y = -c.tz, rr = c.r * 0.8; let n = 0;
+      const G = 50, gx = Math.floor(X / G), gy = Math.floor(Y / G), kk = Math.ceil(rr / G);
+      for (let a = -kk; a <= kk && n < 160; a++) for (let b = -kk; b <= kk && n < 160; b++) for (const i of LG.grid.get((gx + a) + ':' + (gy + b)) || []) {
+        const s = proj(LG.PX[i], LG.PY[i]); if (!s || s[0] < 0 || s[0] > W || s[1] < 0 || s[1] > H) continue;
+        label(LG.PN[i], s[0] + 4, s[1] - 9, '500 10px system-ui', '#f57c00', 0); n++;
+      }
+    }
+    // Ghim đánh dấu của sự cố đang mở
+    App.incidents.filter(x => x.status !== 'done' && x.mark && x.mark.pole !== undefined).forEach(x => { const s = proj(LG.PX[x.mark.pole], LG.PY[x.mark.pole]); if (s) { g.font = '20px system-ui'; g.textAlign = 'center'; g.fillText('📍', s[0], s[1] - 6); } });
+  },
+  // Lớp HTML phủ: chỉ số, thanh báo, thẻ thông tin – cập nhật mỗi giây
   tick() {
     const k = document.getElementById('mapKpi'); if (!k) return;
-    const cabs = NET.cabs.map(c => netCab(c.id)).filter(Boolean);
-    const online = cabs.filter(c => c.online && c.tele).length, lit = cabs.filter(c => (c.tele?.do || []).some(x => x)).length;
-    const pkw = cabs.reduce((s, c) => s + (c.tele?.p || []).reduce((a, b) => a + (b || 0), 0), 0) / 1000;
+    let on = 0, lit = 0, bad = 0, pw = 0;
+    LG.cabs.forEach(g => { const c = gisCab(g.t); if (!c) return; if (c.online && c.tele) on++; if ((c.tele?.do || [])[0]) lit++; const s = App.cabState(c); if (s === 'bad' || s === 'warn') bad++; pw += (c.tele?.p || []).reduce((a, b) => a + (b || 0), 0); });
     const openInc = App.incidents.filter(x => x.status !== 'done').length;
-    const lamps = NET.cabs.reduce((s, c) => s + c.routes.reduce((a, r) => a + routeEst(netCab(c.id), r).lit, 0), 0);
-    const total = Object.values(ROUTES).reduce((s, r) => s + r.n, 0);
-    k.innerHTML = `<div><span>Tủ trực tuyến</span><b>${online}/${NET.cabs.length}</b></div><div title="Ước tính từ dòng đo của từng tuyến"><span>Đèn sáng</span><b>${lamps}/${total}</b></div>
-      <div><span>Công suất</span><b>${pkw.toFixed(1)} kW</b></div><a href="#/canh-bao"><span>Sự cố mở</span><b style="color:${openInc ? '#f87171' : '#34d399'}">${openInc}</b></a>`;
+    k.innerHTML = `<div><span>Tủ trực tuyến</span><b>${on}/${LG.cabs.length}</b></div><div><span>Tủ đang sáng</span><b>${lit}</b></div>
+      <div><span>Công suất</span><b>${(pw / 1e6).toFixed(2)} MW</b></div><a href="#/canh-bao"><span>Sự cố mở</span><b style="color:${openInc ? '#f87171' : '#34d399'}">${openInc}</b></a>`;
     const latest = App.incidents.filter(x => x.status === 'new' && (ALARM[x.code]?.sev || 1) >= 2).sort((a, b) => b.at - a.at)[0];
     const bn = document.getElementById('mapBanner');
     if (latest) {
       bn.hidden = false;
-      const r = latest.phases.find(p => ROUTES[p]);
-      bn.innerHTML = `<b>🚨 ${esc(latest.tu)}</b><span class="grow">${esc(ALARM[latest.code].label)}${latest.phases.length ? ' – ' + latest.phases.map(p => phaseLabel(latest.code, p)).join(', ') : ''}</span>
-        ${r ? `<button class="btn sm" data-act="m-goto" data-route="${r}" data-idx="${Math.max(0, ((latest.est || {})[r] ?? 1) - 1)}">🎯 Xem</button>` : `<button class="btn sm" data-act="m-cab" data-id="${esc(latest.tu)}">🎯 Xem</button>`}
+      const cab = App.cabs[latest.cab], gt = cab && cab.cfg.gis, fp = latest.cand && latest.cand.length ? latest.cand[0] : null;
+      bn.innerHTML = `<b>🚨 ${esc(latest.tu)}</b><span class="grow">${esc(ALARM[latest.code].label)}</span>
+        <button class="btn sm" data-act="m-goto" ${fp !== null ? `data-pole="${fp}"` : `data-cab="${gt}"`}>🎯 Xem</button>
         <button class="btn sm pri" data-act="inc" data-op="assign" data-no="${latest.no}">Giao ${esc(latest.team)}</button>`;
     } else bn.hidden = true;
     const box = document.getElementById('mapInfo'), s = this.sel;
     if (!s) { box.hidden = true; return; }
     box.hidden = false;
-    if (s.kind === 'tba') {
-      const g = gridState();
-      box.innerHTML = `<div class="row"><b class="grow">① ${esc(NET.tba.name)}</b><button class="btn sm" data-act="m-unsel" aria-label="Đóng">✕</button></div>
-        <div class="sub">Nguồn: <b style="color:${g === 'lost' ? '#f87171' : '#34d399'}">${g === 'lost' ? 'MẤT ĐIỆN (cả khu vực mất áp)' : g === 'ok' ? 'có điện' : 'chưa có dữ liệu'}</b> · công suất chiếu sáng ${pkw.toFixed(1)} kW</div>
-        ${g === 'lost' ? '<div class="sub">👉 Báo điện lực khu vực, không cần cử tổ đi từng tủ.</div>' : ''}`;
-    } else if (s.kind === 'cab') {
-      const c = NET_CAB[s.id], cab = netCab(s.id), t = cab?.tele || {};
-      if (!cab) { box.innerHTML = `<div class="row"><b class="grow">${esc(c.id)} · ${esc(c.name)}</b><button class="btn sm" data-act="m-unsel">✕</button></div><div class="sub">Chưa kết nối tủ này.</div>`; return; }
-      box.innerHTML = `<div class="row"><b class="grow">${esc(c.id)} · ${esc(c.name)}</b>${statusPill(App.cabState(cab))}<button class="btn sm" data-act="m-unsel" aria-label="Đóng">✕</button></div>
-        <div class="sub">${modeInfo(t).txt} · U ${(t.v || []).map(v => num(v, 0)).join('/')} V · I ${(t.i || []).map(v => num(v, 1)).join('/')} A</div>
+    if (s.kind === 'cab') {
+      const g = LG.byT[s.t], cab = gisCab(s.t), t = cab?.tele || {}, ll = cabLatLon(g);
+      const head = `<div class="row"><b class="grow" style="color:${LG.QC[g.q]}">■</b><b class="grow" style="flex:20">${esc(g.id)} · ${esc(g.name)}</b>${cab ? statusPill(App.cabState(cab)) : ''}<button class="btn sm" data-act="m-unsel" aria-label="Đóng">✕</button></div>`;
+      const info = `<div class="sub">${esc(LG.QNAME[g.q])} · ${esc(g.ward)} · ${esc(g.addr)}</div>
+        <div class="sub">${g.kntt ? 'Tủ KNTT' : 'Tủ thường'}${g.comm ? ' · ' + esc(g.comm) : ''} · ${g.poles.length} trụ · đèn ${Object.entries(g.mix).filter(([, v]) => v).map(([kk, v]) => `${kk === 'TT' ? 'TT' : kk} ${v}`).join(' · ') || g.nlamp} · cáp ${Math.round(g.len || 0)} m${g.mgr ? ' · QL: ' + esc(g.mgr) : ''}</div>`;
+      if (!cab) { box.innerHTML = head + info + '<div class="sub">Chưa kết nối tủ này (bật Demo hoặc kết nối thiết bị thật).</div>'; return; }
+      const e = this.est && this.est[s.t];
+      box.innerHTML = head + info + `
+        <div class="sub">${modeInfo(t).txt} · U ${(t.v || []).map(v => num(v, 0)).join('/')} V · I ${(t.i || []).map(v => num(v, 1)).join('/')} A · chuẩn ≈ ${num(g.exp * ((Analyzer.st[cab.cfg.key] || {}).calib || 1), 1)} A</div>
         ${alarmPills(cab) ? `<div class="alarms">${alarmPills(cab)}</div>` : ''}
+        ${e && e.cut !== null && e.cut !== undefined ? `<div class="sub" style="color:#f87171">✂️ Nghi đứt ${esc(LG.where(e.cut))}</div>` : ''}
         ${lampsHtml(cab, true)}
-        <div class="btns"><a class="btn sm pri" href="#/tu/${encodeURIComponent(cab.cfg.key)}/vao-ra">🎛️ Mở bảng tủ</a><a class="btn sm" href="#/tu/${encodeURIComponent(cab.cfg.key)}/3d">🧊 Sơ đồ tủ</a>
-          <button class="btn sm" data-act="mode-auto" data-key="${esc(cab.cfg.key)}" ${t.mode === 'remote' ? '' : 'disabled'}>🕒 Về tự động</button></div>`;
+        <div class="btns"><a class="btn sm pri" href="#/tu/${encodeURIComponent(cab.cfg.key)}/vao-ra">🎛️ Bảng tủ</a><button class="btn sm" data-act="sc-open" data-t="${s.t}">📟 SCADA</button>
+          <a class="btn sm" target="_blank" rel="noopener" href="https://www.google.com/maps?q=${ll[0].toFixed(6)},${ll[1].toFixed(6)}">📍 Google Maps</a></div>`;
     } else {
-      const r = ROUTES[s.route], cab = netCab(r.cab), e = routeEst(cab, r), al = routeAlarm(cab, r.id);
-      const st = !e.known ? 'chưa có dữ liệu' : !e.energ ? 'tuyến không có điện' : s.idx < e.lit ? '💡 sáng (ước tính)' : '⚫ mất điện (ước tính)';
-      box.innerHTML = `<div class="row"><b class="grow">Cột #${s.idx + 1} · ${r.id} · ${esc(r.name)}</b><button class="btn sm" data-act="m-unsel" aria-label="Đóng">✕</button></div>
-        <div class="sub">${r.cab} · ${CH_LABEL(r)} · pha ${'ABC'[s.idx % 3]} · cách tủ ≈ ${r.distM[s.idx]} m · ${st}${e.tot !== null && e.tot !== undefined ? ` · dòng tuyến ${num(e.tot, 1)}/${num(r.n * LAMP_A, 1)} A` : ''}</div>
-        ${al ? `<div class="alarms"><span class="pill bad">${ALARM[al.code].icon} ${esc(ALARM[al.code].label)}</span></div>` : ''}
-        <div class="btns"><button class="btn sm pri" data-act="m-mark" data-route="${r.id}" data-idx="${s.idx}" data-kind="after">📍 Đứt cáp sau cột này</button>
-          <button class="btn sm" data-act="m-mark" data-route="${r.id}" data-idx="${s.idx}" data-kind="post">📍 Sự cố tại cột này</button><button class="btn sm" data-act="m-focus">🔍</button></div>`;
+      const i = s.i, g = LG.byT[LG.PT[i]], p = LG.D.p[i], lit = this.litFn ? this.litFn(i) : false, cab = g ? gisCab(g.t) : null;
+      const demo = cab && cab.cfg.source === 'sim' && App.devices[g.id];
+      box.innerHTML = `<div class="row"><b class="grow">Trụ ${esc(LG.poleName(i))}</b><button class="btn sm" data-act="m-unsel" aria-label="Đóng">✕</button></div>
+        <div class="sub">Tủ ${esc(g ? g.id + ' · ' + g.name : '—')} · tuyến ${esc(LG.D.tuy[p[2]] || '—')} · ${esc(LG.street(i))}</div>
+        <div class="sub">${esc(LG.D.lt[p[6]] || '—')} · ${LG.PL[i]} đèn: ${esc(LG.PLT[i].join(', '))} · ≈ ${LG.PI[i].toFixed(2)} A</div>
+        <div class="sub">Cách tủ ≈ ${Math.round(LG.PD[i])} m theo cáp · nhánh phía sau ${LG.PSUB[i].toFixed(1)} A · ${lit ? '💡 sáng (ước tính)' : '⚫ không sáng / chưa rõ'}</div>
+        <div class="btns"><button class="btn sm pri" data-act="m-mark" data-pole="${i}" data-kind="after">📍 Đứt cáp trước trụ này</button><button class="btn sm" data-act="m-mark" data-pole="${i}" data-kind="post">📍 Sự cố tại trụ</button>
+          <a class="btn sm" target="_blank" rel="noopener" href="https://www.google.com/maps?q=${polesLatLon(i).map(v => (+v).toFixed(6)).join(',')}">📍 Maps</a></div>
+        ${demo ? `<div class="btns" style="margin-top:4px"><span class="sub">🧪 Giả lập:</span><button class="btn sm" data-act="g-fault" data-pole="${i}" data-val="cut">✂️ Cắt cáp</button><button class="btn sm" data-act="g-fault" data-pole="${i}" data-val="lamp">💡 Hỏng bóng</button><button class="btn sm" data-act="g-fault" data-pole="${i}" data-val="crash">💥 Xe tông</button><button class="btn sm" data-act="g-fault" data-pole="${i}" data-val="clear">✅ Sửa xong</button></div>` : ''}`;
     }
   }
 };
-function CH_LABEL(r) { const cab = netCab(r.cab); return cab ? cab.cfg.doNames[r.ch] : DEF_DO[r.ch]; }
 function viewMap() {
-  return `<div class="mapwrap"><div id="map3d"><div class="empty" style="color:#9bb0c3">Đang tải bản đồ 3D…</div></div>
-    <div class="mov mlegend"><i style="background:#36c5f0"></i>Nguồn<i style="background:#f5a524"></i>Cáp đèn<i style="background:#ffe9a6"></i>Đèn sáng<i style="background:#f87171"></i>Nghi sự cố</div>
-    <div class="mov mtools"><button data-act="m-home">🎯 Toàn cảnh</button><button data-act="m-flow" class="${G3.flow ? 'on' : ''}">⚡ Dòng điện</button><a href="#/scada">📟 SCADA</a></div>
+  if (!LG.ready) return gisLoading();
+  return `<div class="mapwrap"><div id="map3d"><div class="empty" style="color:#9bb0c3">Đang dựng bản đồ nền…</div></div>
+    <div class="mov msearch"><input id="mapQ" placeholder="Tìm tủ, trụ, địa chỉ…" autocomplete="off" value="${esc(App.mapQ || '')}"><div id="mapRes"></div></div>
+    <div class="mov mtools">${qChips('m-q')}
+      <button data-act="m-fit">🎯 Toàn cảnh</button><button data-act="m-3d" class="${G3.mode3d ? 'on' : ''}">${G3.mode3d ? '🗺️ 2D' : '🧊 3D'}</button>
+      <button data-act="m-flow" class="${G3.flow ? 'on' : ''}">⚡ Dòng</button><button data-act="m-theme">${G3.theme === 'dark' ? '☀️ Nền sáng' : '🌙 Nền tối'}</button></div>
     <div class="mov mkpi" id="mapKpi"></div>
     <div class="mov minfo" id="mapInfo" hidden></div>
     <div class="mov mbanner" id="mapBanner" hidden></div>
+    <div class="mov msrc">Nền CAD & dữ liệu: LIGHTING-GIS · VN-2000</div>
   </div>`;
 }
+function gisLoading() {
+  return `<div class="panel" style="margin:20px auto;max-width:520px;text-align:center"><h2>Đang tải dữ liệu LIGHTING-GIS</h2>
+    <p class="sub" id="gisStep">${esc(LG.step || 'Đang kết nối…')}</p>${LG.err ? `<p class="sub" style="color:var(--bad)">Lỗi: ${esc(LG.err)}</p><button class="btn pri" data-act="gis-retry">Thử lại</button>` : '<p class="sub">Lần đầu khoảng 3 MB, các lần sau lấy từ bộ nhớ máy.</p>'}</div>`;
+}
+function mapSearch(q) {
+  const box = document.getElementById('mapRes'); if (!box) return;
+  App.mapQ = q; q = unaccent(q.trim());
+  if (q.length < 2) { box.innerHTML = ''; return; }
+  const out = [];
+  for (const g of LG.cabs) { if (unaccent(`${g.id} ${g.name} ${g.addr} ${g.pe}`).includes(q)) out.push(`<button data-act="m-goto" data-cab="${g.t}"><b>🗄️ ${esc(g.id)}</b> ${esc(g.name)}<small>${esc(LG.QSHORT[g.q])} · ${esc(g.addr)}</small></button>`); if (out.length >= 7) break; }
+  if (out.length < 10) for (let i = 0; i < LG.n && out.length < 12; i++) if (unaccent(LG.PN[i]).includes(q)) out.push(`<button data-act="m-goto" data-pole="${i}"><b>💡 ${esc(LG.PN[i])}</b><small>${esc(LG.byT[LG.PT[i]]?.id || '')} · ${esc(LG.street(i))}</small></button>`);
+  box.innerHTML = out.join('') || '<div class="sub" style="padding:6px 8px">Không tìm thấy</div>';
+}
 
-/* ---------- SCADA: sơ đồ một sợi tự vẽ từ NET + số liệu đo ---------- */
+/* ---------- SCADA: ô trạng thái tất cả tủ + sơ đồ một sợi của tủ đang chọn ---------- */
+function viewScada() {
+  if (!LG.ready) return gisLoading();
+  const list = LG.cabs.filter(cabMatches);
+  const order = {bad: 0, warn: 1, off: 2, ok: 3, none: 4};
+  list.sort((a, b) => order[cabStatus(a.t)] - order[cabStatus(b.t)] || a.id.localeCompare(b.id));
+  if (App.scSel === undefined || !LG.byT[App.scSel]) App.scSel = (list.find(g => g.poles.length) || list[0] || LG.cabs[0]).t;
+  const cnt = s => list.filter(g => cabStatus(g.t) === s).length;
+  return `<div class="row" style="margin-bottom:8px"><h1 class="grow" style="margin:0">SCADA</h1><a class="btn sm" href="#/ban-do">🗺️ Bản đồ</a></div>
+    ${qChips('sc-q')}
+    <div class="row" style="margin:8px 0"><input class="in grow" id="scQ" placeholder="Lọc tủ theo mã, tên, địa chỉ…" value="${esc(Filt.text)}" autocomplete="off" style="min-width:180px">
+      <span class="sub">${list.length} tủ · <b style="color:var(--bad)">${cnt('bad')}</b> sự cố · <b style="color:var(--warn)">${cnt('warn')}</b> cảnh báo · ${cnt('off')} mất KN</span></div>
+    <div class="tiles">${list.slice(0, 400).map(g => `<button class="tile s-${cabStatus(g.t)}${g.t === App.scSel ? ' sel' : ''}" data-act="sc-sel" data-t="${g.t}" title="${esc(g.name)}" style="--qc:${LG.QC[g.q]}">${esc(g.id)}</button>`).join('')}${list.length > 400 ? `<span class="sub">+${list.length - 400} tủ – lọc thêm để xem</span>` : ''}</div>
+    <div class="scada">${scadaCab(App.scSel)}</div>
+    <div class="slegend"><span><i style="background:${SC.feed}"></i>Nguồn có điện</span><span><i style="background:${SC.on}"></i>Có điện</span><span><i style="background:${SC.off}"></i>Không điện</span><span><i style="background:${SC.tr}"></i>CB nhảy</span><span><i style="background:${SC.bad}"></i>Nghi đứt / mất điện (ước tính)</span></div>
+    <p class="sub">Chấm = trụ đèn theo thứ tự từ tủ (dữ liệu LIGHTING-GIS). Sáng/tắt là <b>ước tính từ dòng tổng của tủ</b> so với danh mục đèn. Bấm chấm để xem trên bản đồ.</p>`;
+}
 const SC = {on: '#f5a524', feed: '#36c5f0', off: '#4b5b6b', bad: '#f87171', tr: '#e879f9'};
-function swSym(x, y, closed, tripped, attrs, label) {
-  const col = tripped ? SC.tr : closed ? '#f1f5f9' : SC.off;
-  return `<g class="click ${tripped ? 'blink' : ''}" ${attrs}><rect x="${x - 11}" y="${y - 11}" width="22" height="22" rx="3" fill="${closed ? col : '#0b1219'}" stroke="${col}" stroke-width="2"/>
-    ${closed ? '' : `<line x1="${x - 7}" y1="${y + 7}" x2="${x + 7}" y2="${y - 7}" stroke="${col}" stroke-width="2"/>`}<text x="${x + 16}" y="${y + 5}" class="s-mut">${label}</text></g>`;
-}
-function kSym(x, y, cmd, fb, attrs, label) {
-  const bad = cmd !== fb, col = bad ? SC.bad : fb ? SC.on : SC.off;
-  return `<g class="click ${bad ? 'blink' : ''}" ${attrs}><circle cx="${x}" cy="${y}" r="14" fill="${fb ? 'rgba(245,165,36,.18)' : '#0b1219'}" stroke="${col}" stroke-width="2.5"/>
-    <text x="${x}" y="${y + 5}" text-anchor="middle" class="s-tag" style="font-size:13px">${label}</text></g>`;
-}
-function scadaSVG() {
-  const W = 1000, colW = W / NET.cabs.length, top = 30, bus = 108, H = 700, grid = gridState();
-  const gc = grid === 'lost' ? SC.off : SC.feed;
-  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Sơ đồ một sợi lưới chiếu sáng">`;
-  s += `<g class="click" data-act="sc-tba"><circle cx="${W / 2 - 10}" cy="${top + 18}" r="16" fill="none" stroke="${gc}" stroke-width="2.5"/><circle cx="${W / 2 + 10}" cy="${top + 18}" r="16" fill="none" stroke="${gc}" stroke-width="2.5"/>
-    <text x="${W / 2 + 34}" y="${top + 14}" class="s-tag">TBA</text><text x="${W / 2 + 34}" y="${top + 32}" class="s-mut">22/0,4 kV · ${grid === 'lost' ? 'MẤT ĐIỆN' : grid === 'ok' ? 'CÓ ĐIỆN' : 'CHƯA CÓ DỮ LIỆU'}</text></g>`;
-  s += `<line x1="${W / 2}" y1="${top + 34}" x2="${W / 2}" y2="${bus}" stroke="${gc}" stroke-width="3"/>`;
-  s += `<line x1="40" y1="${bus}" x2="${W - 40}" y2="${bus}" stroke="${gc}" stroke-width="6" ${grid === 'lost' ? 'class="blink"' : ''}/><text x="42" y="${bus - 8}" class="s-mut">THANH CÁI 0,4 kV</text>`;
-  NET.cabs.forEach((c, ci) => {
-    const cab = netCab(c.id), t = cab && cab.online ? cab.tele || {} : {}, cx = colW * ci + colW / 2, x0 = colW * ci + 12, x1 = colW * (ci + 1) - 12;
-    const st = cab ? App.cabState(cab) : 'off', key = cab ? esc(cab.cfg.key) : '';
-    const v = t.v || [], live = v.some(x => x !== null && x >= CFG.V_LOST), di = t.di || [], dO = t.do || [];
-    const cbOn = di[DI.CB] !== 0, pw = live && cbOn;
-    s += `<line x1="${cx}" y1="${bus}" x2="${cx}" y2="${bus + 40}" stroke="${grid === 'lost' ? SC.off : SC.feed}" stroke-width="3"/>`;
-    s += `<rect x="${x0}" y="${bus + 40}" width="${x1 - x0}" height="${H - bus - 52}" rx="10" fill="rgba(54,197,240,.03)" stroke="${st === 'bad' ? SC.bad : st === 'warn' ? '#fbbf24' : '#24384b'}" stroke-dasharray="6 5" ${st === 'bad' ? 'class="blink"' : ''}/>`;
-    s += `<a href="${cab ? `#/tu/${encodeURIComponent(cab.cfg.key)}/vao-ra` : '#/cai-dat'}"><text x="${x0 + 10}" y="${bus + 62}" class="s-tag">${c.id}${st === 'off' ? ' · MẤT KN' : ''}</text></a>
-      <text x="${x0 + 10}" y="${bus + 80}" class="s-mut">${t.mode === 'remote' ? 'TỪ XA' : di[DI.AUTO] === 0 ? 'TAY' : 'TỰ ĐỘNG'} · ${v.length ? v.map(x => num(x, 0)).join('/') + ' V' : '—'}</text>
-      ${di[DI.DOOR] ? `<text x="${x1 - 10}" y="${bus + 62}" text-anchor="end" class="s-mut" style="fill:#f87171!important">CỬA MỞ</text>` : ''}`;
-    s += `<line x1="${cx}" y1="${bus + 40}" x2="${cx}" y2="${bus + 92}" stroke="${live ? SC.feed : SC.off}" stroke-width="3"/>`;
-    s += swSym(cx, bus + 104, cbOn, !cbOn, `data-act="sc-cb" data-key="${key}"`, 'CB tổng');
-    const busY = bus + 140;
-    s += `<line x1="${cx}" y1="${bus + 115}" x2="${cx}" y2="${busY}" stroke="${pw ? SC.on : SC.off}" stroke-width="3"/>`;
-    const bx = c.routes.map((_, ri) => x0 + (x1 - x0) * (ri + 0.5) / c.routes.length);
-    s += `<line x1="${bx[0]}" y1="${busY}" x2="${bx[bx.length - 1]}" y2="${busY}" stroke="${pw ? SC.on : SC.off}" stroke-width="4"/>`;
-    c.routes.forEach((r, ri) => {
-      const x = bx[ri], e = routeEst(cab, r), rcb = e.rcb, fb = FB_OF_DO[r.ch] >= 0 ? di[FB_OF_DO[r.ch]] === 1 : dO[r.ch] === 1;
-      const a2 = pw && rcb, a3 = a2 && fb, ri3 = (t.r || {})[r.id];
-      s += `<line x1="${x}" y1="${busY}" x2="${x}" y2="${busY + 22}" stroke="${pw ? SC.on : SC.off}" stroke-width="3"/>`;
-      s += swSym(x, busY + 34, rcb, !rcb, `data-act="sc-rcb" data-key="${key}" data-route="${r.id}"`, 'CB');
-      s += `<line x1="${x}" y1="${busY + 45}" x2="${x}" y2="${busY + 70}" stroke="${a2 ? SC.on : SC.off}" stroke-width="3"/>`;
-      s += kSym(x, busY + 85, dO[r.ch] === 1, fb, `data-act="sc-k" data-key="${key}" data-ch="${r.ch}"`, 'K' + (r.ch + 1));
-      s += `<text x="${x + 20}" y="${busY + 90}" class="s-mut">${r.ch ? 'Nửa đêm' : 'Cả đêm'}</text>`;
-      s += `<line x1="${x}" y1="${busY + 99}" x2="${x}" y2="${busY + 140}" stroke="${a3 ? SC.on : SC.off}" stroke-width="3"/>`;
-      s += `<circle cx="${x}" cy="${busY + 118}" r="7" fill="none" stroke="#9fb3c6" stroke-width="1.5"/>`;
-      if (ri3) ['A', 'B', 'C'].forEach((p, k) => { s += `<text x="${x - 58}" y="${busY + 158 + k * 20}" class="s-val">${p} ${num(ri3[k], 2)} A</text>`; });
-      else s += `<text x="${x - 58}" y="${busY + 158}" class="s-mut">không đo theo tuyến</text>`;
-      s += `<text x="${x - 58}" y="${busY + 220}" class="s-mut">${e.tot !== null && e.tot !== undefined ? `Σ ${num(e.tot, 1)} A / ${num(r.n * LAMP_A, 1)}` : ''}</text>`;
-      const al = routeAlarm(cab, r.id), ty = busY + 250;
-      s += `<text x="${x - 60}" y="${ty}" class="s-tag" style="font-size:15px">${r.id}</text><text x="${x - 30}" y="${ty}" class="s-mut">${esc(r.name.length > 10 ? r.name.slice(0, 9) + '…' : r.name)}</text>`;
-      const rowN = 7, dx = 21;
-      r.posts.forEach((_, i) => {
-        const px = x - 60 + (i % rowN) * dx, py = ty + 18 + Math.floor(i / rowN) * 22, lit = e.energ && i < e.lit;
-        const dead = al && (al.code === 'CAT_CAP' || al.code === 'MAT_DIEN_TUYEN') && i >= e.lit;
-        const fill = lit ? 'rgba(255,233,166,.85)' : '#0b1219', stroke = dead ? SC.bad : lit ? '#ffe9a6' : SC.off;
-        const mk = App.incidents.some(xx => xx.status !== 'done' && xx.mark && xx.mark.route === r.id && xx.mark.idx === i);
-        s += `<g class="click ${dead ? 'blink' : ''}" data-act="m-goto" data-route="${r.id}" data-idx="${i}"><circle cx="${px}" cy="${py}" r="7" fill="${fill}" stroke="${stroke}" stroke-width="2"/>${mk ? `<text x="${px}" y="${py - 10}" text-anchor="middle" style="font-size:11px">📍</text>` : ''}</g>`;
-        if (i % rowN) s += `<line x1="${px - dx + 7}" y1="${py}" x2="${px - 7}" y2="${py}" stroke="${dead ? SC.bad : lit ? SC.on : SC.off}" stroke-width="2"/>`;
-      });
+function scadaCab(t) {
+  const g = LG.byT[t]; if (!g) return '';
+  const cab = gisCab(t), tl = cab && cab.online ? cab.tele || {} : {}, di = tl.di || [], dO = tl.do || [], v = tl.v || [];
+  const live = v.some(x => x !== null && x >= CFG.V_LOST), cbOn = di[DI.CB] !== 0, k1 = FB_OF_DO[0] >= 0 ? di[FB_OF_DO[0]] === 1 : dO[0] === 1;
+  const pw = live && cbOn, on = pw && k1, iSum = (tl.i || []).reduce((a, b) => a + (b || 0), 0);
+  const calib = cab ? (Analyzer.st[cab.cfg.key] || {}).calib || 1 : 1, exp = g.exp * calib;
+  const e = cabEst(t), dead = e.cut !== null && e.cut !== undefined ? inSubtree(g, e.cut) : new Set(), candSet = new Set(e.cand || []);
+  const key = cab ? esc(cab.cfg.key) : '';
+  const per = 30, dx = 30, rows = g.routes.reduce((s, r) => s + Math.ceil(r.poles.length / per), 0);
+  const W = 1000, top = 270, H = top + rows * 30 + g.routes.length * 26 + 30;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Sơ đồ một sợi tủ ${esc(g.id)}">`;
+  s += `<text x="20" y="34" class="s-tag">${esc(g.id)} · ${esc(g.name)}</text><text x="20" y="58" class="s-mut">${esc(LG.QNAME[g.q])} · ${esc(g.ward)} · ${esc(g.addr)} · ${cab ? (cab.online ? (tl.mode === 'remote' ? 'TỪ XA' : di[DI.AUTO] === 0 ? 'TAY' : 'TỰ ĐỘNG') : 'MẤT KẾT NỐI') : 'CHƯA KẾT NỐI'}</text>`;
+  if (cab) s += `<a href="#/tu/${encodeURIComponent(cab.cfg.key)}/vao-ra"><text x="${W - 20}" y="34" text-anchor="end" class="s-val">Mở bảng tủ ›</text></a>`;
+  // Nguồn → CB tổng → K1 → CT → cây trụ
+  const y0 = 100;
+  s += `<text x="20" y="${y0 + 5}" class="s-mut">Lưới 0,4 kV</text><line x1="120" y1="${y0}" x2="200" y2="${y0}" stroke="${live ? SC.feed : SC.off}" stroke-width="4"/>`;
+  s += `<g class="click ${!cbOn ? 'blink' : ''}" data-act="sc-cb" data-key="${key}"><rect x="200" y="${y0 - 13}" width="26" height="26" rx="3" fill="${cbOn ? '#f1f5f9' : '#0b1219'}" stroke="${cbOn ? '#f1f5f9' : SC.tr}" stroke-width="2"/>${cbOn ? '' : `<line x1="205" y1="${y0 + 8}" x2="221" y2="${y0 - 8}" stroke="${SC.tr}" stroke-width="2"/>`}<text x="213" y="${y0 + 34}" text-anchor="middle" class="s-mut">CB tổng</text></g>`;
+  s += `<line x1="226" y1="${y0}" x2="310" y2="${y0}" stroke="${pw ? SC.on : SC.off}" stroke-width="4"/>`;
+  [0, 1].forEach(ch => {
+    const fb = FB_OF_DO[ch] >= 0 ? di[FB_OF_DO[ch]] === 1 : dO[ch] === 1, cmd = dO[ch] === 1, bad = cab && cab.online && cmd !== fb;
+    const x = 330 + ch * 110;
+    s += `<g class="click ${bad ? 'blink' : ''}" data-act="sc-k" data-key="${key}" data-ch="${ch}"><circle cx="${x}" cy="${y0}" r="16" fill="${fb ? 'rgba(245,165,36,.18)' : '#0b1219'}" stroke="${bad ? SC.bad : fb ? SC.on : SC.off}" stroke-width="2.5"/><text x="${x}" y="${y0 + 5}" text-anchor="middle" class="s-tag" style="font-size:14px">K${ch + 1}</text><text x="${x}" y="${y0 + 36}" text-anchor="middle" class="s-mut">${ch ? 'Nửa đêm' : 'Cả đêm'}</text></g>`;
+  });
+  s += `<line x1="346" y1="${y0}" x2="${W - 40}" y2="${y0}" stroke="${on ? SC.on : SC.off}" stroke-width="4"/>`;
+  s += `<circle cx="540" cy="${y0}" r="9" fill="none" stroke="#9fb3c6" stroke-width="2"/><text x="560" y="${y0 - 14}" class="s-val">I ${(tl.i || []).map(x => num(x, 1)).join(' / ')} A · Σ ${num(iSum, 1)} A</text>`;
+  s += `<text x="560" y="${y0 + 24}" class="s-mut">GIS ≈ ${num(exp, 1)} A · ${on ? (exp - iSum > 0.5 * g.avgI ? `thiếu ${num(exp - iSum, 1)} A (≈${Math.round((exp - iSum) / g.avgI)} bóng)` : 'đủ') : '—'}</text><text x="560" y="${y0 + 46}" class="s-mut">${g.poles.length} trụ · cáp ${Math.round(g.len || 0)} m</text>`;
+  if (e.cut !== null && e.cut !== undefined) {
+    const w = LG.where(e.cut), k = w.indexOf(' – ');
+    s += `<text x="20" y="${y0 + 82}" class="s-tag" style="fill:#f87171!important;font-size:15px">✂️ Nghi đứt ${esc(k > 0 ? w.slice(0, k) : w)}</text>`;
+    s += `<text x="44" y="${y0 + 106}" class="s-mut" style="fill:#fca5a5!important">${esc(k > 0 ? w.slice(k + 3) : '')}${(e.cand || []).length > 1 ? ` · +${e.cand.length - 1} vị trí cùng mức dòng` : ''}</text>`;
+  }
+  else if (e.allDead) s += `<text x="20" y="${y0 + 82}" class="s-tag" style="fill:#f87171!important;font-size:15px">⚠ Đã đóng K1 nhưng không có dòng – nghi đứt cáp đầu tuyến</text>`;
+  s += `<line x1="${W - 40}" y1="${y0}" x2="${W - 40}" y2="${top - 20}" stroke="${on ? SC.on : SC.off}" stroke-width="3"/>`;
+  let y = top;
+  if (!g.routes.length) s += `<text x="20" y="${y}" class="s-mut">Tủ này chưa có trụ đèn nào trong dữ liệu LIGHTING-GIS.</text>`;
+  g.routes.forEach(r => {
+    s += `<text x="20" y="${y}" class="s-tag" style="font-size:14px">${esc(r.name)}</text><text x="${W - 20}" y="${y}" text-anchor="end" class="s-mut">${r.poles.length} trụ · ${num(r.poles.reduce((a, i) => a + LG.PI[i], 0), 1)} A</text>`;
+    y += 22;
+    r.poles.forEach((i, k) => {
+      const px = 30 + (k % per) * dx, py = y + Math.floor(k / per) * 30, isDead = dead.has(i) || e.allDead, lit = on && !isDead;
+      const fill = lit ? 'rgba(255,233,166,.85)' : '#0b1219', stroke = candSet.has(i) ? '#ff3b3b' : isDead && on ? SC.bad : lit ? '#ffe9a6' : SC.off;
+      const mk = App.incidents.some(x => x.status !== 'done' && x.mark && x.mark.pole === i);
+      s += `<g class="click ${candSet.has(i) ? 'blink' : ''}" data-act="m-goto" data-pole="${i}"><title>${esc(LG.poleName(i))} · ${Math.round(LG.PD[i])} m</title><circle cx="${px}" cy="${py}" r="${candSet.has(i) ? 10 : 8}" fill="${fill}" stroke="${stroke}" stroke-width="2.5"/>${mk ? `<text x="${px}" y="${py - 11}" text-anchor="middle" style="font-size:12px">📍</text>` : ''}</g>`;
+      if (k % per) s += `<line x1="${px - dx + 8}" y1="${py}" x2="${px - 8}" y2="${py}" stroke="${isDead && on ? SC.bad : lit ? SC.on : SC.off}" stroke-width="2"/>`;
     });
+    y += Math.ceil(r.poles.length / per) * 30 + 4;
   });
   return s + '</svg>';
-}
-function viewScada() {
-  const open = App.incidents.filter(x => x.status !== 'done' && NET_CAB[x.tu]).sort((a, b) => (ALARM[b.code]?.sev || 0) - (ALARM[a.code]?.sev || 0) || b.at - a.at);
-  return `<div class="row" style="margin-bottom:10px"><h1 class="grow" style="margin:0">SCADA · Sơ đồ một sợi</h1><a class="btn sm" href="#/ban-do">🗺️ Bản đồ 3D</a></div>
-    <div class="scada">${scadaSVG()}</div>
-    <div class="slegend"><span><i style="background:${SC.feed}"></i>Nguồn có điện</span><span><i style="background:${SC.on}"></i>Lộ chiếu sáng có điện</span><span><i style="background:${SC.off}"></i>Không điện</span><span><i style="background:${SC.tr}"></i>CB nhảy</span><span><i style="background:${SC.bad}"></i>Nghi sự cố</span></div>
-    <p class="sub">Bấm CB, contactor K1/K2 để điều khiển · bấm tên tủ để mở bảng tủ · bấm chấm cột để xem trên bản đồ. Chấm cột là <b>ước tính từ dòng đo được</b>.</p>
-    <div class="panel"><div class="row"><h2 class="grow" style="margin:0">Sự cố đang mở (${open.length})</h2><a class="btn sm" href="#/canh-bao">Xem tất cả</a></div>
-    ${open.length ? open.slice(0, 8).map(x => { const r = x.phases.find(p => ROUTES[p]); return `<div class="io"><span class="led ${(ALARM[x.code]?.sev || 1) >= 3 ? 'bad' : 'on'}"></span>
-      <div class="grow"><b>${ALARM[x.code].icon} ${esc(x.tu)} · ${esc(ALARM[x.code].label)}${x.phases.length ? ' – ' + x.phases.map(p => phaseLabel(x.code, p)).join(', ') : ''}</b><div class="sub">${esc(x.no)} · ${fmtTime(x.at)} · ${STATUS[x.status]} · ${esc(x.team)}</div></div>
-      ${r ? `<button class="btn sm" data-act="m-goto" data-route="${r}" data-idx="${Math.max(0, ((x.est || {})[r] ?? 1) - 1)}">🗺️</button>` : ''}</div>`; }).join('') : '<div class="sub" style="margin-top:8px">Không có sự cố.</div>'}</div>`;
 }
 function scadaK(key, ch) {
   const cab = App.cabs[key]; if (!cab) { toast('Tủ chưa kết nối'); return; }
@@ -2694,6 +2969,17 @@ function scadaK(key, ch) {
       <button class="btn" data-act="do" data-key="${esc(key)}" data-ch="${ch + 1}" data-val="0">⚫ Cắt (tắt)</button>
       <button class="btn" data-act="mode-auto" data-key="${esc(key)}">🕒 Về tự động</button><button class="btn" id="mNo">Đóng</button></div>`);
   $('#mNo').onclick = closeModal;
+}
+// Giả lập sự cố theo trụ trên mạng GIS (Demo)
+function applyPoleFault(i, kind) {
+  const g = LG.byT[LG.PT[i]]; if (!g) return;
+  const d = App.devices[g.id]; if (!d) return;
+  if (kind === 'cut') d.cuts.add(i);
+  if (kind === 'lamp') d.fails.add(i);
+  if (kind === 'crash') d.down = i;
+  if (kind === 'clear') { d.cuts.delete(i); d.fails.delete(i); if (d.down === i) d.down = null; }
+  if (kind === 'clearAll') { d.cuts.clear(); d.fails.clear(); d.down = null; }
+  d.burst = 3;
 }
 
 /* ---------- Cài app (PWA) + góp ý ---------- */
@@ -2714,10 +3000,15 @@ function feedbackUrl() {
 document.addEventListener('pointerdown', e => { const a = e.target.closest('#fbChip,#fbBtn'); if (a) a.href = feedbackUrl(); }, true);
 document.addEventListener('focusin', e => { if (e.target.closest && e.target.closest('#fbChip,#fbBtn')) e.target.closest('#fbChip,#fbBtn').href = feedbackUrl(); });
 
-/* ---------- Khởi động ---------- */
-App.init();
+/* ---------- Khởi động: tải LIGHTING-GIS rồi mới dựng tủ ---------- */
+function startGis() {
+  LG.load(step => { LG.step = step; const e = document.getElementById('gisStep'); if (e) e.textContent = step; })
+    .then(() => { App.init(); render(true); })
+    .catch(e => { LG.err = e.message || String(e); render(true); });
+}
 updateHeader();
 render(true);
+startGis();
 setInterval(loop, 1000);
 if (App.settings.mq.auto) mqToggle();
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
